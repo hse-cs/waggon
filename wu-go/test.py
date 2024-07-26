@@ -43,7 +43,7 @@ def main():
                         verbosity=args.verbosity,
                         seed=seed)
         opt.optimise()
-        utils.save_results(opt)
+        utils.save_results(opt) # TODO: make saving as default, but give the option to plot results from optimiser type
     
     utils.plot_results(opt_eps=opt.opt_eps, max_iter=opt.max_iter)
 

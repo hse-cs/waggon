@@ -1,47 +1,59 @@
-# Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space
+# Welcome to WAGGON: WAssrestein Global Gradient-free Optimisation
 
-Official code for the paper [Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space](https://arxiv.org/abs/2407.11917). 
+<!-- [![PyPI version](https://badge.fury.io/py/probaforms.svg)](https://badge.fury.io/py/probaforms)
+[![Tests](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml)
+[![Docs](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/pages/pages-build-deployment)
+[![Downloads](https://static.pepy.tech/badge/probaforms)](https://pepy.tech/project/probaforms)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) -->
 
-Tigran Ramazyan*, Mikhail Hushchyn, Denis Derkach.
+`WAGGON` is a python library of black box gradient-free optimisation. Currently, the library contains implementations of optimisation methods based on Wasserstein uncertainty and baseline approaches from the following papers:
+
+- Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. "Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space." Arxiv abs/2407.1117 (2024). [[arxiv]](https://arxiv.org/abs/2407.11917)
+
+## Implemented methods
+- Wasserstein Uncertainty Global Optimisation (WU-GO)
+- Bayesian optimisation: via Expected Improvement (EI), Lower and Upper Confidence Bounds (LCB, UCB)
 
 ## Installation
 
-- Create conda environment:
-
-```sh
-conda create -n wugo python=3.10
-conda activate wugo
+```
+pip install waggon
+```
+or
+```
+git clone https://github.com/hse-cs/waggon
+cd waggon
+pip install -e
 ```
 
-- Install core dependencies:
+## Basic usage
 
-```sh
-pip install -r requirements.txt
-```
+(See more examples in the [documentation](TBD).)
 
-## Experiments
+The following code snippet (does this and that)
 
-- To run experiments:
-```bash
-    python opt_exp.py experiment acquisition_function surrogate_model
-```
+```python
+import waggon
+from waggon.acquisition import WU
+from waggon.optim import Optimiser
+from waggon.surrogates.gan import WGAN_GP as GAN
+from waggon.test_functions import three_hump_camel
 
-Available options:
-- experiment: `three_hump_camel`, `ackley`, `levi`, `rosenbrock`, `tang`
-- acquisition_function: `WU-GO`, `EI`, `LCB`
-- surrogate_model: `GAN`, `BNN`, `DE`, `GP`, `DGP`
+# initialise the function to be optimised
+func = three_hump_camel()
+# initialise the surrogate to carry out optimisation
+surr = GAN()
+# initialise optimisation acquisition function
+acqf = WU()
+
+# initialise optimiser
+opt = Optimiser(func=func, surr=surr, acqf=acqf)
+
+# run optimisation
+opt.optimise()
+
+#
 
 
-## Citation
 
-```
-@misc{ramazyan2024globaloptimisationblackboxfunctions,
-      title={Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space}, 
-      author={Tigran Ramazyan and Mikhail Hushchyn and Denis Derkach},
-      year={2024},
-      eprint={2407.11917},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2407.11917}, 
-}
 ```

@@ -40,7 +40,7 @@ def save_results(optimiser, base_dir='test_results'):
         pickle.dump(optimiser.res, f)
 
 
-def load_results(func_dir, acqf_name, surr_name, base_dir='test_results', epsilon=1e-1):
+def load_results(func_dir, acqf_name, surr_name, base_dir='test_results', epsilon=1e-1): # TODO: change to load for plotting
 
     res_path = f'{base_dir}/{func_dir}/{acqf_name}/{surr_name}'
     
@@ -65,7 +65,7 @@ def load_results(func_dir, acqf_name, surr_name, base_dir='test_results', epsilo
     return np.mean(results, axis=0), np.std(results, axis=0)
 
 
-def single_plot(func_dir, ax=None, base_dir='test_results', y_label=False, x_label=False, title=None, **kwargs):
+def single_plot(func_dir, ax=None, base_dir='test_results', y_label=False, x_label=False, title=None, **kwargs): # TODO: add option to plot single results
 
     epsilon = kwargs['opt_eps'] if 'opt_eps' in kwargs else 1e-1
     max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
