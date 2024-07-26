@@ -13,11 +13,11 @@ FUNCS = {'ackley': f.ackley,
          'tang': f.tang,
          'thc': f.three_hump_camel}
 
-SURR = {'gan': GAN(n_epochs=30),}
+SURR = {'gan': GAN(),}
 
 ACQF = {'wu': WU(), 'ei': EI(), 'lcb': CB(minimise=True), 'ucb': CB(minimise=False)}
 
-SEEDS = [2]#, 3, 5, 7, 11, 13, 17, 19, 23, 73]
+SEEDS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 73]
 
 def main():
     # TODO: make experiment configurations; add model configuration files
@@ -41,8 +41,7 @@ def main():
                         surrogate=SURR[args.surrogate],
                         acqf=ACQF[args.acquisition],
                         verbosity=args.verbosity,
-                        seed=seed,
-                        num_opt=True)
+                        seed=seed)
         opt.optimise()
         utils.save_results(opt)
     

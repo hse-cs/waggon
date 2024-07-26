@@ -40,7 +40,7 @@ class Optimiser(BaseEstimator):
         candidates = qmc.scale(candidates, self.func.domain[:, 0], self.func.domain[:, 1])
         return candidates
     
-    def numerical_search(self): # TODO: TEST NUMERICAL OPTIMISATION
+    def numerical_search(self):
         best_x = None
         best_acqf = np.inf
 
