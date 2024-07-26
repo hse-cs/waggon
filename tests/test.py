@@ -1,9 +1,9 @@
-import utils
 import argparse
-from acqusition import WU, EI, CB
-import test_functions as f
-from optim import Optimiser
-from surrogates.gan import WGAN_GP as GAN
+from waggon import display
+from waggon.surrogates import GAN
+from waggon import functions as f
+from waggon.optim import Optimiser
+from waggon.acquisition import WU, EI, CB
 
 FUNCS = {'ackley': f.ackley,
          'himmelblau': f.himmelblau,
@@ -20,7 +20,6 @@ ACQF = {'wu': WU(), 'ei': EI(), 'lcb': CB(minimise=True), 'ucb': CB(minimise=Fal
 SEEDS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 73]
 
 def main():
-    # TODO: make experiment configurations; add model configuration files
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--function', help='optimise the given function', default='thc', choices=['thc', 'ackley', 'levi', 'himmelblau', 'rosenbrock', 'tang', 'holder'])
     parser.add_argument('-d', '--dimensions', type=int, help='dimensionality of the experiment', default=None)
@@ -43,9 +42,10 @@ def main():
                         verbosity=args.verbosity,
                         seed=seed)
         opt.optimise()
-        utils.save_results(opt) # TODO: make saving as default, but give the option to plot results from optimiser type
+        display(opt)
+        # utils.save_results(opt) # TODO: make saving as default, but give the option to plot results from optimiser type
     
-    utils.plot_results(opt_eps=opt.opt_eps, max_iter=opt.max_iter)
+    # utils.plot_results(opt_eps=opt.opt_eps, max_iter=opt.max_iter)
 
 if __name__ == '__main__':
     main()

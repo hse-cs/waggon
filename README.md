@@ -52,8 +52,19 @@ opt = Optimiser(func=func, surr=surr, acqf=acqf)
 # run optimisation
 opt.optimise()
 
-#
-
-
-
+# visualise
+waggon.display()
 ```
+
+
+## Support
+
+- Home: [https://github.com/hse-cs/waggon](https://github.com/hse-cs/waggon)
+<!-- - Documentation: [https://hse-cs.github.io/waggon](https://hse-cs.github.io/waggon) -->
+- For any usage questions, suggestions and bugs please use the [issue page](https://github.com/hse-cs/waggon/issues).
+
+<!-- ## Thanks to all our contributors
+
+<a href="https://github.com/HSE-LAMBDA/probaforms/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=HSE-LAMBDA/probaforms" />
+</a> -->

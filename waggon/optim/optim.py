@@ -7,9 +7,9 @@ from sklearn.base import BaseEstimator
 
 
 class Optimiser(BaseEstimator):
-    def __init__(self, surrogate, acqf, func, **kwargs):
-        self.surrogate      = surrogate 
+    def __init__(self, func, surr, acqf, **kwargs):
         self.func           = func
+        self.surr           = surr
         self.acqf           = acqf
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
         self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
@@ -23,7 +23,7 @@ class Optimiser(BaseEstimator):
         self.candidates     = None
     
     def fit(self, X, y, **kwargs):
-        self.surrogate.fit(X, y, **kwargs)
+        self.surr.fit(X, y, **kwargs)
     
     def create_candidates(self, N=None):
         if N is None:
@@ -96,7 +96,7 @@ class Optimiser(BaseEstimator):
             self.fit(X, y, verbosity=self.verbosity)
             
             self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-            self.acqf.surrogate = self.surrogate
+            self.acqf.surr = self.surr
 
             next_x = self.predict()
             next_f = np.array([self.func(next_x)])
