@@ -1,8 +1,11 @@
-from .utils import PRIMES, get_olhs_num, save_results, display, plot_results
+from .utils import save_results, display, plot_results
+
 
 __all__ = [
-    'PRIMES',
-    'get_olhs_num',
+    # 'optim',
+    # 'functions',
+    # 'surrogates',
+    # 'acquisition',
     'save_results',
     'display',
     'plot_results'
