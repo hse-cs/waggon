@@ -2,3 +2,4 @@ acquisition
 functions
 optim
 surrogates
+utils

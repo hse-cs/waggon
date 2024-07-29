@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
-from utils import get_olhs_num
 from scipy.optimize import minimize
+from waggon.utils import get_olhs_num
 from sklearn.base import BaseEstimator
 
 

@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
-from waggon import get_olhs_num
 from scipy.optimize import minimize
+from waggon.utils import get_olhs_num
 from sklearn.base import BaseEstimator
 
 
@@ -15,7 +15,7 @@ class Optimiser(BaseEstimator):
         self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100 
         self.plot_res       = kwargs['plot_res'] if 'plot_res' in kwargs else False 
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
+        self.opt_eps        = kwargs['opt_eps'] if 'opt_eps' in kwargs else 1e-1
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
         self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
@@ -113,9 +113,9 @@ class Optimiser(BaseEstimator):
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
 
-            if np.linalg.norm(self.res[-1]) <= self.eps:
+            if np.linalg.norm(self.res[-1]) <= self.opt_eps:
                 print('Experiment finished successfully')
                 break
         
-        if np.linalg.norm(self.res[-1]) > self.eps:
+        if np.linalg.norm(self.res[-1]) > self.opt_eps:
             print('Experiment failed')

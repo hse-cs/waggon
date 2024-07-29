@@ -1,5 +1,5 @@
 import argparse
-from waggon import display
+# from waggon import display
 from waggon.surrogates import GAN
 from waggon import functions as f
 from waggon.optim import Optimiser
