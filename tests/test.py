@@ -1,5 +1,5 @@
 import argparse
-# from waggon import display
+from waggon.utils import display
 from waggon.surrogates import GAN
 from waggon import functions as f
 from waggon.optim import Optimiser
@@ -37,7 +37,7 @@ def main():
         print(f'Experiment #{i}')
 
         opt = Optimiser(func=FUNCS[args.function](args.dimensions) if args.dimensions else FUNCS[args.function](),
-                        surrogate=SURR[args.surrogate],
+                        surr=SURR[args.surrogate],
                         acqf=ACQF[args.acquisition],
                         verbosity=args.verbosity,
                         seed=seed)

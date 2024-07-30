@@ -1,4 +1,4 @@
-# Welcome to WAGGON: WAssrestein Global Gradient-free Optimisation
+# Welcome to WAGGON: WAssrestein Global Gradient-free OptimisatioN
 
 <!-- [![PyPI version](https://badge.fury.io/py/probaforms.svg)](https://badge.fury.io/py/probaforms)
 [![Tests](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml)

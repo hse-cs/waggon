@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
 from scipy.optimize import minimize
-from waggon.utils import get_olhs_num
 from sklearn.base import BaseEstimator
 
 
@@ -119,3 +118,9 @@ class Optimiser(BaseEstimator):
         
         if np.linalg.norm(self.res[-1]) > self.opt_eps:
             print('Experiment failed')
+
+
+PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
+
+def get_olhs_num(n):
+    return PRIMES[PRIMES ** 2 > n]**2

@@ -6,7 +6,7 @@ class Acquisition():
     def __init__(self):
         self.y         = None
         self.name      = None
-        self.surrogate = None
+        self.surr      = None
     
     def __call__(self, x):
         pass
@@ -18,7 +18,7 @@ class EI(Acquisition):
         self.name = 'EI'
     
     def __call__(self, x, **kwargs):
-        mu, std = self.surrogate.predict(x.reshape(1, -1), **kwargs)
+        mu, std = self.surr.predict(x.reshape(1, -1), **kwargs)
 
         z_ = np.min(self.y) - mu
         z  = z_ / (std + 1e-8)
@@ -37,7 +37,7 @@ class CB(Acquisition):
         self.minimise = minimise
     
     def __call__(self, x, **kwargs):
-        mu, std = self.surrogate.predict(x.reshape(1, -1), **kwargs)
+        mu, std = self.surr.predict(x.reshape(1, -1), **kwargs)
 
         if self.minimise:
             return mu - self.kappa * std # LCB
@@ -58,9 +58,9 @@ class WU(Acquisition):
             candidates = candidates.reshape(1, -1)
         
         if candidates.shape[0] == self.y.shape[0] * self.y.shape[1]:
-            y_gen = self.surrogate.sample(candidates)
+            y_gen = self.surr.sample(candidates)
         else:
-            y_gen = np.concatenate([self.surrogate.sample(candidates) for _ in range(self.y.shape[1])])
+            y_gen = np.concatenate([self.surr.sample(candidates) for _ in range(self.y.shape[1])])
         
         y_gen = y_gen.reshape(y_gen.shape[0]//self.y.shape[1], self.y.shape[1])
 

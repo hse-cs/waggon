@@ -5,10 +5,10 @@ with open("README.md", "r") as f:
 
 setup(
     name="waggon",
-    version="0.0.3",
+    version="0.0.4",
     description="Wasserstein global gradient-free optimisation methods library.",
-    package_dir={"": "./waggon"},
-    packages=find_packages(where="waggon"),
+    # package_dir={"": "."},
+    packages=find_packages(),#where="./waggon"
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hse-cs/waggon",
@@ -27,3 +27,5 @@ setup(
     },
     python_requires=">=3.11",
 )
+
+

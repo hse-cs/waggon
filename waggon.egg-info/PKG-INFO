@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: waggon
-Version: 0.0.3
+Version: 0.0.4
 Summary: Wasserstein global gradient-free optimisation methods library.
 Home-page: https://github.com/hse-cs/waggon
 Author: Tigran Ramazyan
@@ -15,7 +15,7 @@ Description-Content-Type: text/markdown
 Provides-Extra: dev
 License-File: LICENSE.txt
 
-# Welcome to WAGGON: WAssrestein Global Gradient-free Optimisation
+# Welcome to WAGGON: WAssrestein Global Gradient-free OptimisatioN
 
 <!-- [![PyPI version](https://badge.fury.io/py/probaforms.svg)](https://badge.fury.io/py/probaforms)
 [![Tests](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml)
