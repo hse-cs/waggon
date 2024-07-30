@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class function():
+class Function():
     def __init__(self, **kwargs):
         self.dim           = kwargs['dim'] if 'dim' in kwargs else 1
         self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([-10, 10])
@@ -34,7 +34,7 @@ class function():
         return X, y
 
 
-class three_hump_camel(function):
+class three_hump_camel(Function):
     def __init__(self):
         super().__init__()
         self.dim      = 2
@@ -44,7 +44,7 @@ class three_hump_camel(function):
         self.f        = lambda x: 2 * x[:, 0]**2 - 1.05 * x[:, 0]**4 + x[:, 0]**6 / 6 + x[:, 0]*x[:, 1] + x[:, 1]**2
 
 
-class rosenbrock(function):
+class rosenbrock(Function):
     def __init__(self, dim=20):
         super().__init__()
         self.dim      = dim
@@ -54,7 +54,7 @@ class rosenbrock(function):
         self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0).squeeze()
 
 
-class tang(function):
+class tang(Function):
     def __init__(self, dim=20):
         super().__init__()
         self.dim      = dim
@@ -64,7 +64,7 @@ class tang(function):
         self.f        = lambda x: np.sum(x**4 - 16*x**2 + 5*x + 39.16617*self.dim, axis=1).squeeze()
 
 
-class ackley(function):
+class ackley(Function):
     def __init__(self):
         super().__init__()
         self.dim      = 2
@@ -74,7 +74,7 @@ class ackley(function):
         self.f        = lambda x: -20 * np.exp(-0.2*np.sqrt(0.5*(x[:, 0]**2 + x[:, 1]**2))) -  np.exp(0.5*(np.cos(2*np.pi**x[:, 0]) + np.cos(2*np.pi*x[:, 1]))) + np.e + 20
 
 
-class levi(function):
+class levi(Function):
     def __init__(self):
         super().__init__()
         self.dim      = 2
@@ -104,7 +104,7 @@ class levi(function):
         return X, y
 
 
-class himmelblau(function):
+class himmelblau(Function):
     def __init__(self):
         super().__init__()
         self.dim      = 2
@@ -114,7 +114,7 @@ class himmelblau(function):
         self.f        = lambda x: (x[:, 0]**2 + x[:, 1] - 11)**2 + (x[:, 0] + x[:, 1]**2 - 7)**2 
 
 
-class holder(function):
+class holder(Function):
     def __init__(self):
         super().__init__()
         self.dim      = 2

@@ -53,7 +53,7 @@ opt = Optimiser(func=func, surr=surr, acqf=acqf)
 opt.optimise()
 
 # visualise
-waggon.display()
+waggon.utils.display()
 ```
 
 
