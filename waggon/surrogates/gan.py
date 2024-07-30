@@ -58,7 +58,7 @@ class WGAN_GP(object):# TODO: add cuda
         self.G_lr        = kwargs['G_lr'] if 'G_lr' in kwargs else 1e-4
         self.D_lr        = kwargs['D_lr'] if 'D_lr' in kwargs else 1e-4
         self.scheduler   = kwargs['scheduler'] if 'scheduler' in kwargs else False
-        self.verbosity   = kwargs['verbosity'] if 'verbosity' in kwargs else 1
+        self.verbose     = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.save_loss   = kwargs['save_loss'] if 'save_loss' in kwargs else False
 
         if self.save_loss:
@@ -89,7 +89,7 @@ class WGAN_GP(object):# TODO: add cuda
         
     def fit(self, X, y, **kwargs):
 
-        self.verbosity = kwargs['verbosity'] if 'verbosity' in kwargs else self.verbosity
+        self.verbose = kwargs['verbose'] if 'verbose' in kwargs else self.verbose
 
         if self.G is None:
             self.G = Generator(n_inputs=X.shape[-1] + self.latent_dim, n_outputs=y.shape[-1], hidden_size=self.hidden_size)
@@ -113,7 +113,7 @@ class WGAN_GP(object):# TODO: add cuda
         self.G.train(True)
         self.D.train(True)
         
-        if self.verbosity > 1:
+        if self.verbose > 1:
             fit_loop = tqdm(range(self.n_epochs), unit="epoch")
         else:
             fit_loop = range(self.n_epochs)
@@ -154,7 +154,7 @@ class WGAN_GP(object):# TODO: add cuda
                 if self.save_loss:
                     self.G_loss_hist.append(G_loss.detach().numpy())
             
-            if self.verbosity > 1:
+            if self.verbose > 1:
                 fit_loop.set_description(f"G loss: {G_loss:.4f}, D loss: {D_loss:.4f}")
             
             if self.scheduler:

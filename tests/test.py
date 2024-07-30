@@ -25,7 +25,7 @@ def main():
     parser.add_argument('-d', '--dimensions', type=int, help='dimensionality of the experiment', default=None)
     parser.add_argument('-s', '--surrogate', help='surrogate for optimisation', default='gan', choices=['gan', 'bnn', 'de', 'dgp', 'gp'])
     parser.add_argument('-a', '--acquisition', help='acqusition function to use for optimisation', default='wu', choices=['wu', 'ei', 'lcb', 'ucb'])
-    parser.add_argument('-v', '--verbosity', type=int, help='increase output verbosity', choices=[0, 1, 2], default=1) #TODO: make varbosity compatible with all surrogates
+    parser.add_argument('-v', '--verbose', type=int, help='increase output verbose', choices=[0, 1, 2], default=1) #TODO: make varbosity compatible with all surrogates
 
     args = parser.parse_args()
 
@@ -39,7 +39,7 @@ def main():
         opt = Optimiser(func=FUNCS[args.function](args.dimensions) if args.dimensions else FUNCS[args.function](),
                         surr=SURR[args.surrogate],
                         acqf=ACQF[args.acquisition],
-                        verbosity=args.verbosity,
+                        verbose=args.verbose,
                         seed=seed)
         opt.optimise()
         display(opt)
