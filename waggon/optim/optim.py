@@ -78,7 +78,7 @@ class Optimiser(BaseEstimator):
         '''
         self.surr.fit(X, y, **kwargs)
     
-    def create_candidates(self, N=self.n_candidates): # TODO: fix default value of N
+    def create_candidates(self, N=None):
         '''
         Creates candidate points among which the next best parameters will be selected.
         Also used for selecting the initial points of the optimisation process.
@@ -93,6 +93,8 @@ class Optimiser(BaseEstimator):
         candidates : np.array of shape (N, func.dim)
             Candidates points.
         '''
+
+        N = self.n_candidates if N is None else N
 
         if self.olhs:
             N = max(N, _get_olhs_num(self.func.dim)[0])
