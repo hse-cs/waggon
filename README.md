@@ -9,7 +9,7 @@
 
 - Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. "Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space." Arxiv abs/2407.1117 (2024). [[arxiv]](https://arxiv.org/abs/2407.11917)
 
-<!-- ![](https://raw.githubusercontent.com/HSE-LAMBDA/roerich/main/images/700125v1.jpeg) -->
+![](https://github.com/hse-cs/waggon/blob/master/images/readme_image.png)
 
 ## Implemented methods
 - Wasserstein Uncertainty Global Optimisation (WU-GO)
