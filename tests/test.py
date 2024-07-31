@@ -3,7 +3,7 @@ from waggon.utils import display
 from waggon.surrogates import GAN
 from waggon import functions as f
 from waggon.optim import Optimiser
-from waggon.acquisition import WU, EI, CB
+from waggon.acquisitions import WU, EI, CB
 
 FUNCS = {'ackley': f.ackley,
          'himmelblau': f.himmelblau,

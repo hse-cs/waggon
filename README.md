@@ -34,8 +34,8 @@ The following code snippet (does this and that)
 
 ```python
 import waggon
-from waggon.acquisition import WU
 from waggon.optim import Optimiser
+from waggon.acquisitions import WU
 from waggon.surrogates.gan import WGAN_GP as GAN
 from waggon.test_functions import three_hump_camel
 

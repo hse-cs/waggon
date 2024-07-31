@@ -12,20 +12,23 @@ class Optimiser(ABCMeta):
 
         Parameter
         ----------
-        func : waggon.functions.Function #TODO: callable
+        func : Callable, waggon.functions.Function
             Black-box function to be optimised.
         
-        surr : # TODO: base surrogate class
-            Surrogate model for the black-box function
+        surr : waggon.surrogates.Surrogate or waggon.surrogate.GenSurrogate
+            Surrogate model for the black-box function.
         
-        acqf : waggon.acquisition.Acquisition
-            Acquisition function defining the optimisation strategy
+        acqf : waggon.acquisitions.Acquisition
+            Acquisition function defining the optimisation strategy.
         
         max_iter : int, default = 100
             Maximum number of optimisation loop iterations.
         
         eps : float, default = 1e-1
             Epsilon-solution criterion value.
+        
+        error_type : {'x', 'f'}, default = 'x'
+            Optimisation error type - either in argument, 'x', or function, 'f'.
 
         num_opt : bool, default = False
             Whether the acquisition function is optimised numerically or not. If False,
@@ -55,6 +58,7 @@ class Optimiser(ABCMeta):
         self.acqf           = acqf
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
+        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
         self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
@@ -218,11 +222,16 @@ class Optimiser(ABCMeta):
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
 
-            if np.linalg.norm(self.res[-1]) <= self.eps:
+            if self.error_type == 'x':
+                error = np.min([np.min(np.linalg.norm(X - gb), axis=-1) for gb in self.func.glob_min], axis=-1)
+            elif self.error_type == 'f':
+                error = np.linalg.norm(self.res[-1])
+
+            if error <= self.eps:
                 print('Experiment finished successfully')
                 break
         
-        if np.linalg.norm(self.res[-1]) > self.eps:
+        if error > self.eps:
             print('Experiment failed')
 
 
