@@ -28,8 +28,6 @@ pip install -e
 
 ## Basic usage
 
-(See more examples in the [documentation](TBD).)
-
 The following code snippet (does this and that)
 
 ```python
