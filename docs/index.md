@@ -28,7 +28,7 @@ pip install -e
 
 ## Basic usage
 
-(See more examples in the [documentation](https://hse-cs.github.io/waggon/).)
+(See more examples in the [documentation](TBD).)
 
 The following code snippet (does this and that)
 
