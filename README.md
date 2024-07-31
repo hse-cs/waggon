@@ -1,14 +1,15 @@
 # Welcome to WAGGON: WAssrestein Global Gradient-free OptimisatioN
 
-<!-- [![PyPI version](https://badge.fury.io/py/probaforms.svg)](https://badge.fury.io/py/probaforms)
-[![Tests](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/tests.yml)
-[![Docs](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/HSE-LAMBDA/probaforms/actions/workflows/pages/pages-build-deployment)
-[![Downloads](https://static.pepy.tech/badge/probaforms)](https://pepy.tech/project/probaforms)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) -->
+[![PyPI version](https://badge.fury.io/py/waggon.svg)](https://badge.fury.io/py/waggon.svg)
+[![Documentation](https://img.shields.io/badge/documentation-yes-green.svg)](https://hse-lambda.github.io/waggon)
+[![Downloads](https://static.pepy.tech/badge/waggon)](https://pepy.tech/project/waggon)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `WAGGON` is a python library of black box gradient-free optimisation. Currently, the library contains implementations of optimisation methods based on Wasserstein uncertainty and baseline approaches from the following papers:
 
 - Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. "Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space." Arxiv abs/2407.1117 (2024). [[arxiv]](https://arxiv.org/abs/2407.11917)
+
+<!-- ![](https://raw.githubusercontent.com/HSE-LAMBDA/roerich/main/images/700125v1.jpeg) -->
 
 ## Implemented methods
 - Wasserstein Uncertainty Global Optimisation (WU-GO)
