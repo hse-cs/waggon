@@ -1,8 +1,9 @@
 import numpy as np
+from abc import ABCMeta
 from scipy.stats import norm, energy_distance as Wdist
 
 
-class Acquisition():
+class Acquisition(ABCMeta):
     def __init__(self):
         '''
         Base class for an acquisition function.
@@ -18,6 +19,8 @@ class Acquisition():
         surr : # TODO: add type
             Surrogate model to compute the acquisition function.
         '''
+        super(Acquisition, self).__init__()
+
         self.y         = None
         self.name      = None
         self.surr      = None
@@ -43,7 +46,8 @@ class EI(Acquisition):
         '''
         Expected Improvement (EI) acquisition function.
         '''
-        super().__init__()
+        super(EI, self).__init__()
+        
         self.name = 'EI'
     
     def __call__(self, x, **kwargs):
@@ -87,7 +91,8 @@ class CB(Acquisition):
             If True, the acquisition function is Lower Confidence Bound (LCB).
             If False, the acquisition function is Upper Confidence Bound (UCB).
         '''
-        super().__init__()
+        super(CB, self).__init__()
+
         self.name     = 'LCB' if minimise else 'UCB'
         self.kappa    = kappa
         self.minimise = minimise
@@ -130,7 +135,8 @@ class WU(Acquisition):
         minimise : bool, default = True
             Whether the objective is minimised or not.
         '''
-        super().__init__()
+        super(WU, self).__init__()
+
         self.name     = 'WU'
         self.kappa    = kappa
         self.minimise = minimise

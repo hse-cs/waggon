@@ -1,6 +1,7 @@
 import numpy as np
+from abc import ABCMeta
 
-class Function():
+class Function(ABCMeta):
     def __init__(self, **kwargs):
         '''
         Base class for a synthetic black box.
@@ -35,6 +36,8 @@ class Function():
         n_obs : int, default = 100
             Number of observations to sample for each point of the parameter space.
         '''
+        super(Function, self).__init__()
+
         self.dim           = kwargs['dim'] if 'dim' in kwargs else 1 # TODO: add q-dimensional output?
         self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([-10, 10])
         self.name          = kwargs['name'] if 'name' in kwargs else 'parabola'
@@ -100,7 +103,8 @@ class three_hump_camel(Function):
     Three Hump Camel function.
     '''
     def __init__(self):
-        super().__init__()
+        super(three_hump_camel, self).__init__()
+        
         self.dim      = 2
         self.domain   = np.array([[-5, 5], [-5, 5]])
         self.name     = 'Three Hump Camel'
@@ -113,7 +117,8 @@ class rosenbrock(Function):
     d-dimensional Rosenbrock function.
     '''
     def __init__(self, dim=20):
-        super().__init__()
+        super(rosenbrock, self).__init__()
+
         self.dim      = dim
         self.domain   = np.array([self.dim*[-2, 2]]).reshape(self.dim, 2)
         self.name     = f'Rosenbrock ({self.dim} dim.)'
@@ -126,7 +131,8 @@ class tang(Function):
     d-dimensional Styblinsky-Tang function.
     '''
     def __init__(self, dim=20):
-        super().__init__()
+        super(tang, self).__init__()
+
         self.dim      = dim
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = f'Styblinski-Tang ({self.dim} dim.)'
@@ -139,7 +145,8 @@ class ackley(Function):
     Ackley function.
     '''
     def __init__(self):
-        super().__init__()
+        super(ackley, self).__init__()
+
         self.dim      = 2
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = 'Ackley'
@@ -153,6 +160,7 @@ class levi(Function):
     '''
     def __init__(self):
         super().__init__()
+
         self.dim      = 2
         self.domain   = np.array([self.dim*[-4, 6]]).reshape(self.dim, 2)
         self.name     = 'Lévi'
@@ -185,7 +193,8 @@ class himmelblau(Function):
     Himmelblau function.
     '''
     def __init__(self):
-        super().__init__()
+        super(himmelblau, self).__init__()
+
         self.dim      = 2
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = 'Himmelblau'
@@ -198,7 +207,8 @@ class holder(Function):
     Hölder function.
     '''
     def __init__(self):
-        super().__init__()
+        super(holder, self).__init__()
+
         self.dim      = 2
         self.domain   = np.array([self.dim*[-10, 10]]).reshape(self.dim, 2)
         self.name     = 'Holder'

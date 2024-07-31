@@ -1,8 +1,9 @@
-import torch
 import numpy as np
 from tqdm import tqdm
+from .surr import GenSurrogate
+
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 from sklearn.preprocessing import StandardScaler
@@ -43,7 +44,7 @@ class Discriminator(nn.Module):
         return x
 
     
-class WGAN_GP(object):# TODO: add cuda
+class WGAN_GP(GenSurrogate):# TODO: add cuda
     def __init__(self, **kwargs):
         self.name        = 'GAN'
         self.G           = kwargs['G'] if 'G' in kwargs else None
@@ -117,6 +118,7 @@ class WGAN_GP(object):# TODO: add cuda
             fit_loop = tqdm(range(self.n_epochs), unit="epoch")
         else:
             fit_loop = range(self.n_epochs)
+        
         for e in fit_loop:
             for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):
 
@@ -160,7 +162,8 @@ class WGAN_GP(object):# TODO: add cuda
             if self.scheduler:
                 G_scheduler.step()
                 D_scheduler.step()
-            
+        
+        self.scheduler = True
         self.G.train(False)
         self.D.train(False)
     
@@ -169,27 +172,3 @@ class WGAN_GP(object):# TODO: add cuda
         noise = Variable(Tensor(np.random.normal(0, 1, (X_cond.shape[0], self.latent_dim))))
         X_gen = self.G(Tensor(X_cond).detach(), noise.detach())
         return X_gen.detach().numpy()
-    
-    
-    def _scale(self, X):
-        
-        ss = StandardScaler()
-        ss.fit(X)
-        X_ss = ss.transform(X)
-        
-        return X_ss
-    
-    
-    def predict(self, X, scheduler=False):
-        
-        if self.scaling:
-            X = self._scale(X)
-        
-        X, X_cond = X[:, :1], X[:, 1:]
-
-        if X_cond.shape[-1] == 1:
-            X_cond = X_cond.reshape(-1, 1)
-
-        self.scheduler = scheduler
-        
-        self.fit(X, X_cond)

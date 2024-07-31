@@ -45,7 +45,7 @@ def main():
         display(opt)
         # utils.save_results(opt) # TODO: make saving as default, but give the option to plot results from optimiser type
     
-    # utils.plot_results(opt_eps=opt.opt_eps, max_iter=opt.max_iter)
+    # utils.plot_results(eps=opt.eps, max_iter=opt.max_iter)
 
 if __name__ == '__main__':
     main()

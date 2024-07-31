@@ -19,8 +19,8 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Operating System :: OS Independent",
     ],
-    install_requires=["matplotlib>=3.7.5", "numpy>=1.24.1", "scikit_learn>=1.3.2",
-                      "scipy>=1.14.0", "setuptools>=72.1.0", "torch>=2.2.2", "tqdm>=4.66.4"],
+    install_requires=["matplotlib>=3.7.5", "numpy>=1.24.1", "scipy>=1.14.0",
+                      "setuptools>=72.1.0", "torch>=2.2.2", "tqdm>=4.66.4"],
     extras_require={
         "dev": ["pytest>=7.0", "twine>=4.0.2"],
     },

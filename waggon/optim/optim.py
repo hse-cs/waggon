@@ -1,11 +1,11 @@
 import numpy as np
 from tqdm import tqdm
+from abc import ABCMeta
 from scipy.stats import qmc
 from scipy.optimize import minimize
-from sklearn.base import BaseEstimator
 
 
-class Optimiser(BaseEstimator):
+class Optimiser(ABCMeta):
     def __init__(self, func, surr, acqf, **kwargs):
         '''
         Black-box optimiser.
@@ -24,7 +24,7 @@ class Optimiser(BaseEstimator):
         max_iter : int, default = 100
             Maximum number of optimisation loop iterations.
         
-        opt_eps : float, default = 1e-1
+        eps : float, default = 1e-1
             Epsilon-solution criterion value.
 
         num_opt : bool, default = False
@@ -48,11 +48,13 @@ class Optimiser(BaseEstimator):
             Controls verbosity when fitting and predicting. By default only a progress bar over the
             optimisation loop is displayed.
         '''
+        super(Optimiser, self).__init__()
+
         self.func           = func
         self.surr           = surr
         self.acqf           = acqf
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.opt_eps        = kwargs['opt_eps'] if 'opt_eps' in kwargs else 1e-1
+        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
         self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
@@ -63,7 +65,7 @@ class Optimiser(BaseEstimator):
     
     def fit(self, X, y, **kwargs):
         '''
-        Fit the surrogate model on a training set (X, y)
+        Fit the surrogate model on a training set (X, y).
 
         Parameters
         ----------
@@ -216,11 +218,11 @@ class Optimiser(BaseEstimator):
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
 
-            if np.linalg.norm(self.res[-1]) <= self.opt_eps:
+            if np.linalg.norm(self.res[-1]) <= self.eps:
                 print('Experiment finished successfully')
                 break
         
-        if np.linalg.norm(self.res[-1]) > self.opt_eps:
+        if np.linalg.norm(self.res[-1]) > self.eps:
             print('Experiment failed')
 
 

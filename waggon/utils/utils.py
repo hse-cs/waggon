@@ -65,7 +65,7 @@ def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_res
 def display(source, ax=None, base_dir='test_results', y_label=False, x_label=False, title=None, **kwargs): # TODO: add option to plot single results
 
     if type(source) == 'str': # if function directory is given; used when plotting all results
-        epsilon = kwargs['opt_eps'] if 'opt_eps' in kwargs else 1e-1
+        epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-1
         max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
 
         if ax is None:
