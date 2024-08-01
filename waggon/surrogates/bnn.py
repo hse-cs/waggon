@@ -16,9 +16,9 @@ class BayesianRegressor(nn.Module):
         super(BayesianRegressor, self).__init__()
 
         self.model = nn.Sequential(
-            bnn.BayesianLinear(prior_mu=0, prior_sigma=0.1, in_features=n_inputs, out_features=hidden_size),
+            bnn.BayesLinear(prior_mu=0, prior_sigma=0.1, in_features=n_inputs, out_features=hidden_size),
             nn.Tanh(),
-            bnn.BayesianLinear(prior_mu=0, prior_sigma=0.1, in_features=hidden_size, out_features=n_outputs)
+            bnn.BayesLinear(prior_mu=0, prior_sigma=0.1, in_features=hidden_size, out_features=n_outputs)
         )
     
     def forward(self, x):

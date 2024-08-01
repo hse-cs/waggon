@@ -1,14 +1,15 @@
 LICENSE.txt
 README.md
 setup.py
+tests/test.py
 waggon/__init__.py
 waggon.egg-info/PKG-INFO
 waggon.egg-info/SOURCES.txt
 waggon.egg-info/dependency_links.txt
 waggon.egg-info/requires.txt
 waggon.egg-info/top_level.txt
-waggon/acquisition/__init__.py
-waggon/acquisition/acquisition.py
+waggon/acquisitions/__init__.py
+waggon/acquisitions/acquisition.py
 waggon/functions/__init__.py
 waggon/functions/test_functions.py
 waggon/optim/__init__.py
@@ -19,5 +20,6 @@ waggon/surrogates/de.py
 waggon/surrogates/dgp.py
 waggon/surrogates/gan.py
 waggon/surrogates/gp.py
+waggon/surrogates/surr.py
 waggon/utils/__init__.py
 waggon/utils/utils.py

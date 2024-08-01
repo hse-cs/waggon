@@ -79,7 +79,7 @@ class DGPLayer(DeepGPLayer):
 
 class DGP(DeepGP):
     def __init__(self, **kwargs):
-        super(DGP).__init__()
+        super(DGP, self).__init__()
 
         self.name        = 'DGP'
         self.model       = kwargs['model'] if 'model' in kwargs else None
@@ -104,7 +104,7 @@ class DGP(DeepGP):
 
         if self.model is None:
             self.model = nn.Sequential(
-                DGPLayer(input_dims=X[:, -1], output_dims=self.hidden_size),
+                DGPLayer(input_dims=X.shape[-1], output_dims=self.hidden_size),
                 DGPLayer(input_dims=self.hidden_size)
             )
         
@@ -117,6 +117,8 @@ class DGP(DeepGP):
 
         mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 10))
 
+        self.train()
+
         fit_loop = range(self.n_epochs)
         if self.verbose > 1:
             fit_loop = tqdm(fit_loop, desc="epochs")
@@ -124,7 +126,7 @@ class DGP(DeepGP):
         for e in fit_loop:
             for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):
                 
-                with gpytorch.settings.num_likelihood_samples(self.num_samples):
+                with gpytorch.settings.num_likelihood_samples(self.n_samples):
                     
                     y_pred = self(X_batch)
                     loss = -mll(y_pred, y_batch)
@@ -142,23 +144,26 @@ class DGP(DeepGP):
         X = Tensor(X)
         
         with torch.no_grad():
-            f, var = self(X)
-            std = np.sqrt(var)
+            preds = self(X)
+            f = preds.mean.detach().numpy()
+            std = np.sqrt(preds.variance.detach().numpy())
+        
+        print(f.shape)
 
         return f, std
 
-    def __call__(self, x, *other_inputs):
-        """
-        Overriding __call__ isn't strictly necessary, but it lets us add concatenation based skip connections
-        easily. For example, hidden_layer2(hidden_layer1_outputs, inputs) will pass the concatenation of the first
-        hidden layer's outputs and the input data to hidden_layer2.
-        """
-        if len(other_inputs):
-            if isinstance(x, gpytorch.distributions.MultitaskMultivariateNormal):
-                x = x.rsample()
-            processed_inputs = [
-                inp.unsqueeze(0).expand(gpytorch.settings.num_likelihood_samples.value(), *inp.shape)
-                for inp in other_inputs
-            ]
-            x = torch.cat([x] + processed_inputs, dim=-1)
-        return super().__call__(x)
+    # def __call__(self, x, *other_inputs):
+    #     """
+    #     Overriding __call__ isn't strictly necessary, but it lets us add concatenation based skip connections
+    #     easily. For example, hidden_layer2(hidden_layer1_outputs, inputs) will pass the concatenation of the first
+    #     hidden layer's outputs and the input data to hidden_layer2.
+    #     """
+    #     if len(other_inputs):
+    #         if isinstance(x, gpytorch.distributions.MultitaskMultivariateNormal):
+    #             x = x.rsample()
+    #         processed_inputs = [
+    #             inp.unsqueeze(0).expand(gpytorch.settings.num_likelihood_samples.value(), *inp.shape)
+    #             for inp in other_inputs
+    #         ]
+    #         x = torch.cat([x] + processed_inputs, dim=-1)
+    #     return super().__call__(x)

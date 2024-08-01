@@ -39,11 +39,7 @@ class DE(Surrogate):
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.opt          = kwargs['opt'] if 'opt' in kwargs else 'Adam'
         self.weight_decay = kwargs['weight_decay'] if 'weight_decay' in kwargs else 0
-
-        if self.save_loss:
-            self.loss_hist = []
-        
-        # self.model.device = kwargs['device'] if 'device' in kwargs else torch.device('cpu')
+        self.device       = kwargs['device'] if 'device' in kwargs else torch.device('cpu')
 
         # if 'scheduler' in kwargs:
         #     self.model.set_scheduler('StepLR',
@@ -55,6 +51,7 @@ class DE(Surrogate):
         if self.model == None:
             base_estimator = Regressor(n_inputs=X.shape[-1], n_outputs=y.shape[-1], hidden_size=self.hidden_size)
             self.model = AdversarialTrainingRegressor(estimator = base_estimator, n_estimators = self.n_estimators)
+            self.model.device = self.device
         
         self.model.set_optimizer(self.opt, lr = self.lr, weight_decay = self.weight_decay)
         

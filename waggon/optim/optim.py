@@ -1,11 +1,13 @@
+import os
+import time
+import pickle
 import numpy as np
 from tqdm import tqdm
-from abc import ABCMeta
 from scipy.stats import qmc
 from scipy.optimize import minimize
 
 
-class Optimiser(ABCMeta):
+class Optimiser:
     def __init__(self, func, surr, acqf, **kwargs):
         '''
         Black-box optimiser.
@@ -50,6 +52,9 @@ class Optimiser(ABCMeta):
         verbose : int, default = 1
             Controls verbosity when fitting and predicting. By default only a progress bar over the
             optimisation loop is displayed.
+        
+        save_results : bool, default = False # TODO: make default True
+            Whether results are saved or not.
         '''
         super(Optimiser, self).__init__()
 
@@ -65,24 +70,9 @@ class Optimiser(ABCMeta):
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
         self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
+        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else False
+        self.surr.verbose   = self.verbose
         self.candidates     = None
-    
-    def fit(self, X, y, **kwargs):
-        '''
-        Fit the surrogate model on a training set (X, y).
-
-        Parameters
-        ----------
-        X : np.array of shape (n_samples * func.n_obs, func.dim)
-            Training input points.
-
-        y : np.array of shape (n_samples * func.n_obs, func.dim)
-            Target values of the black-box function.
-
-        kwargs : dict, default = None
-            Keyword arguments of the surrogate model
-        '''
-        self.surr.fit(X, y, **kwargs)
     
     def create_candidates(self, N=None):
         '''
@@ -99,7 +89,7 @@ class Optimiser(ABCMeta):
         candidates : np.array of shape (N, func.dim)
             Candidates points.
         '''
-
+        
         N = self.n_candidates if N is None else N
 
         if self.olhs:
@@ -202,7 +192,7 @@ class Optimiser(ABCMeta):
 
         for i in opt_loop:
             
-            self.fit(X, y, verbose=self.verbose)
+            self.surr.fit(X, y)
             
             self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
             self.acqf.surr = self.surr
@@ -233,6 +223,15 @@ class Optimiser(ABCMeta):
         
         if error > self.eps:
             print('Experiment failed')
+        
+        if self.save_results:
+            self._save()
+        
+        def _save(self, base_dir='test_results'):
+            res_path = create_dir(self.func, self.acqf.name, self.surrogate.name, base_dir=base_dir)
+
+            with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+                pickle.dump(self.res, f)
 
 
 _PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
@@ -242,3 +241,25 @@ def _get_olhs_num(n):
     Private function to select the number of sampling points for orthogonal Latin hypercube sampling.
     '''
     return _PRIMES[_PRIMES ** 2 > n]**2
+
+def create_dir(func, acqf_name, surr_name, base_dir='test_results'):
+    
+    res_path = base_dir
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    
+    func_dir = func.name if func.dim == 2 else func.name + str(func.dim)
+
+    res_path += f'/{func_dir}'
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    
+    res_path += f'/{acqf_name}'
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    
+    res_path += f'/{surr_name}'
+    if not os.path.isdir(res_path):
+        os.mkdir(res_path)
+    
+    return res_path

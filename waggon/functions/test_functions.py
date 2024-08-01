@@ -1,7 +1,6 @@
 import numpy as np
-from abc import ABCMeta
 
-class Function(ABCMeta):
+class Function:
     def __init__(self, **kwargs):
         '''
         Base class for a synthetic black box.

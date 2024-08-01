@@ -46,7 +46,7 @@ def main():
         raise ValueError(f'Surrogate {args.surrogate} is not compatible with {args.acquisition} acquisition function')
 
     for i, seed in enumerate(SEEDS):
-
+        
         print(f'Experiment #{i}')
 
         opt = Optimiser(func=FUNCS[args.function](args.dimensions) if args.dimensions else FUNCS[args.function](),

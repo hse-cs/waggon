@@ -7,36 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def create_dir(func, acqf_name, surr_name, base_dir='test_results'):
-    
-    res_path = base_dir
-    if not os.path.isdir(res_path):
-        os.mkdir(res_path)
-    
-    func_dir = func.name if func.dim == 2 else func.name + str(func.dim)
-
-    res_path += f'/{func_dir}'
-    if not os.path.isdir(res_path):
-        os.mkdir(res_path)
-    
-    res_path += f'/{acqf_name}'
-    if not os.path.isdir(res_path):
-        os.mkdir(res_path)
-    
-    res_path += f'/{surr_name}'
-    if not os.path.isdir(res_path):
-        os.mkdir(res_path)
-    
-    return res_path
-
-
-def save_results(optimiser, base_dir='test_results'):
-    res_path = create_dir(optimiser.func, optimiser.acqf.name, optimiser.surrogate.name, base_dir=base_dir)
-
-    with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
-        pickle.dump(optimiser.res, f)
-
-
 def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_results', epsilon=1e-1):
 
     res_path = f'{base_dir}/{func_dir}/{acqf_name}/{surr_name}'
