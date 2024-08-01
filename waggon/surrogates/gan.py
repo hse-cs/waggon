@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
-from sklearn.preprocessing import StandardScaler
 from torch.utils.data import TensorDataset, DataLoader
 
 # cuda = True if torch.cuda.is_available() else False
@@ -46,6 +45,8 @@ class Discriminator(nn.Module):
     
 class WGAN_GP(GenSurrogate):# TODO: add cuda
     def __init__(self, **kwargs):
+        super(WGAN_GP, self).__init__()
+
         self.name        = 'GAN'
         self.G           = kwargs['G'] if 'G' in kwargs else None
         self.D           = kwargs['D'] if 'D' in kwargs else None
@@ -54,7 +55,6 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
         self.n_epochs    = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
         self.n_disc      = kwargs['n_disc'] if 'n_disc' in kwargs else 5
         self.latent_dim  = kwargs['latent_dim'] if 'latent_dim' in kwargs else 10
-        self.scaling     = kwargs['scaling'] if 'scaling' in kwargs else False
         self.lambda_gp   = kwargs['lambda_gp'] if 'lambda_gp' in kwargs else 1
         self.G_lr        = kwargs['G_lr'] if 'G_lr' in kwargs else 1e-4
         self.D_lr        = kwargs['D_lr'] if 'D_lr' in kwargs else 1e-4
@@ -114,10 +114,9 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
         self.G.train(True)
         self.D.train(True)
         
+        fit_loop = range(self.n_epochs)
         if self.verbose > 1:
-            fit_loop = tqdm(range(self.n_epochs), unit="epoch")
-        else:
-            fit_loop = range(self.n_epochs)
+            fit_loop = tqdm(fit_loop, unit="epoch")
         
         for e in fit_loop:
             for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):

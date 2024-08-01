@@ -1,21 +1,34 @@
 import argparse
 from waggon.utils import display
-from waggon.surrogates import GAN
 from waggon import functions as f
 from waggon.optim import Optimiser
 from waggon.acquisitions import WU, EI, CB
+from waggon.surrogates import BNN, DE, DGP, GAN, GP
 
-FUNCS = {'ackley': f.ackley,
-         'himmelblau': f.himmelblau,
-         'holder': f.holder,
-         'levi': f.levi,
-         'rosenbrock': f.rosenbrock,
-         'tang': f.tang,
-         'thc': f.three_hump_camel}
+FUNCS = {
+    'ackley':     f.ackley,
+    'himmelblau': f.himmelblau,
+    'holder':     f.holder,
+    'levi':       f.levi,
+    'rosenbrock': f.rosenbrock,
+    'tang':       f.tang,
+    'thc':        f.three_hump_camel
+}
 
-SURR = {'gan': GAN(),}
+SURR = {
+    'bnn' : BNN(),
+    'de' :  DE(),
+    'dgp' : DGP(),
+    'gan' : GAN(),
+    'gp' :  GP()
+}
 
-ACQF = {'wu': WU(), 'ei': EI(), 'lcb': CB(minimise=True), 'ucb': CB(minimise=False)}
+ACQF = {
+    'wu':  WU(),
+    'ei':  EI(),
+    'lcb': CB(minimise=True),
+    'ucb': CB(minimise=False)
+}
 
 SEEDS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 73]
 
@@ -25,7 +38,7 @@ def main():
     parser.add_argument('-d', '--dimensions', type=int, help='dimensionality of the experiment', default=None)
     parser.add_argument('-s', '--surrogate', help='surrogate for optimisation', default='gan', choices=['gan', 'bnn', 'de', 'dgp', 'gp'])
     parser.add_argument('-a', '--acquisition', help='acqusition function to use for optimisation', default='wu', choices=['wu', 'ei', 'lcb', 'ucb'])
-    parser.add_argument('-v', '--verbose', type=int, help='increase output verbose', choices=[0, 1, 2], default=1) #TODO: make varbosity compatible with all surrogates
+    parser.add_argument('-v', '--verbose', type=int, help='increase output verbose', choices=[0, 1, 2], default=1)
 
     args = parser.parse_args()
 
