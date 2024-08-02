@@ -58,11 +58,6 @@ class DGPLayer(DeepGPLayer):
         return MultivariateNormal(mean_x, covar_x)
 
     def __call__(self, x, *other_inputs):
-        """
-        Overriding __call__ isn't strictly necessary, but it lets us add concatenation based skip connections
-        easily. For example, hidden_layer2(hidden_layer1_outputs, inputs) will pass the concatenation of the first
-        hidden layer's outputs and the input data to hidden_layer2.
-        """
         if len(other_inputs):
             if isinstance(x, gpytorch.distributions.MultitaskMultivariateNormal):
                 x = x.rsample()
@@ -73,7 +68,6 @@ class DGPLayer(DeepGPLayer):
             ]
 
             x = torch.cat([x] + processed_inputs, dim=-1)
-        
         return super().__call__(x, are_samples=bool(len(other_inputs)))
 
 
@@ -144,26 +138,22 @@ class DGP(DeepGP):
         X = Tensor(X)
         
         with torch.no_grad():
-            preds = self(X)
-            f = preds.mean.detach().numpy()
-            std = np.sqrt(preds.variance.detach().numpy())
+            with gpytorch.settings.num_likelihood_samples(self.n_samples):
+                preds = self(X)
+                f = preds.mean.detach().numpy()
+                std = np.sqrt(preds.variance.detach().numpy())
         
-        print(f.shape)
-
         return f, std
 
-    # def __call__(self, x, *other_inputs):
-    #     """
-    #     Overriding __call__ isn't strictly necessary, but it lets us add concatenation based skip connections
-    #     easily. For example, hidden_layer2(hidden_layer1_outputs, inputs) will pass the concatenation of the first
-    #     hidden layer's outputs and the input data to hidden_layer2.
-    #     """
-    #     if len(other_inputs):
-    #         if isinstance(x, gpytorch.distributions.MultitaskMultivariateNormal):
-    #             x = x.rsample()
-    #         processed_inputs = [
-    #             inp.unsqueeze(0).expand(gpytorch.settings.num_likelihood_samples.value(), *inp.shape)
-    #             for inp in other_inputs
-    #         ]
-    #         x = torch.cat([x] + processed_inputs, dim=-1)
-    #     return super().__call__(x)
+    def __call__(self, x, *other_inputs):
+        if len(other_inputs):
+            if isinstance(x, gpytorch.distributions.MultitaskMultivariateNormal):
+                x = x.rsample()
+
+            processed_inputs = [
+                inp.unsqueeze(0).expand(gpytorch.settings.num_likelihood_samples.value(), *inp.shape)
+                for inp in other_inputs
+            ]
+
+            x = torch.cat([x] + processed_inputs, dim=-1)
+        return super().__call__(x)
