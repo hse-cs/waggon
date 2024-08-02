@@ -53,10 +53,10 @@ def main():
                         surr=SURR[args.surrogate],
                         acqf=ACQF[args.acquisition],
                         verbose=args.verbose,
-                        seed=seed)
+                        seed=seed,
+                        save_results=True)
         opt.optimise()
         display(opt)
-        # utils.save_results(opt) # TODO: make saving as default, but give the option to plot results from optimiser type
     
     # utils.plot_results(eps=opt.eps, max_iter=opt.max_iter)
 

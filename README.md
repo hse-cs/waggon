@@ -1,7 +1,7 @@
 # Welcome to WAGGON: WAssrestein Global Gradient-free OptimisatioN
 
 [![PyPI version](https://badge.fury.io/py/waggon.svg)](https://badge.fury.io/py/waggon.svg)
-[![Documentation](https://img.shields.io/badge/documentation-yes-green.svg)](https://hse-lambda.github.io/waggon)
+[![Documentation](https://img.shields.io/badge/documentation-yes-green.svg)](https://hse-cs.github.io/waggon)
 [![Downloads](https://static.pepy.tech/badge/waggon)](https://pepy.tech/project/waggon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -61,7 +61,7 @@ waggon.utils.display()
 ## Support
 
 - Home: [https://github.com/hse-cs/waggon](https://github.com/hse-cs/waggon)
-<!-- - Documentation: [https://hse-cs.github.io/waggon](https://hse-cs.github.io/waggon) -->
+- Documentation: [https://hse-cs.github.io/waggon](https://hse-cs.github.io/waggon)
 - For any usage questions, suggestions and bugs please use the [issue page](https://github.com/hse-cs/waggon/issues).
 
 <!-- ## Thanks to all our contributors
