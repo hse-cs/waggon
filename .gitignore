@@ -2,3 +2,12 @@ site/
 build/
 dist/
 waggon.egg-info/
+.DS_Store
+docs/.DS_Store
+tests/.DS_Store
+waggon/acquisitions/.DS_Store
+waggon/functions/.DS_Store
+waggon/optim/.DS_Store
+waggon/surrogates/.DS_Store
+waggon/utils/.DS_Store
+waggon/.DS_Store
