@@ -1,5 +1,23 @@
 site_name: WAGGON
 nav:
   - Home: index.md
-  - About: about.md
+  - Black-box optimisation: about.md
+  - Optimisation:
+    - optim.md
+  - Surrogates:
+    - Deep Generative Surrogates: dgm.md
+    - Bayesian Neural Networks: bnn.md
+    - Deep Adversarial Ensembles: de.md
+    - Deep Gaussian Processes: dgp.md
+    - Gaussian Processes: gp.md
+    - Custom Surrogates: custom_surr.md
+  - Acquisition Functions:
+    - Wasserstein Uncertainty: wu.md
+    - Expected Improvement: ei.md
+    - Confidence Bound: cb.md
+    - Custom Acquisition Functions: custom_acqf.md
+  - Experiments:
+    - Test functions: functions.md
+    - Custom experiments: custom_exp.md
+
 theme: readthedocs

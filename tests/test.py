@@ -57,8 +57,6 @@ def main():
                         save_results=True)
         opt.optimise()
         display(opt)
-    
-    # utils.plot_results(eps=opt.eps, max_iter=opt.max_iter)
 
 if __name__ == '__main__':
     main()
