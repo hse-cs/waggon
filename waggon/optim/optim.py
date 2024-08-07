@@ -99,6 +99,7 @@ class Optimiser:
         '''
         
         N = self.n_candidates if N is None else N
+        N = _get_olhs_num(self.func.dim)[0] if N == -1 else N
 
         if self.olhs:
             N = max(N, _get_olhs_num(self.func.dim)[0])
@@ -117,7 +118,7 @@ class Optimiser:
 
         Returns
         -------
-        best_x : np.array of shape (1, func.dim) # TODO: check return type
+        best_x : np.array of shape (func.dim,)
             Predicted optimum of the acquisition function.
         '''
         best_x = None
@@ -144,7 +145,7 @@ class Optimiser:
 
         Returns
         -------
-        best_x : np.array of shape (1, func.dim) # TODO: check return type
+        best_x : np.array of shape (func.dim,)
             Predicted optimum of the acquisition function
         '''
         
@@ -153,6 +154,11 @@ class Optimiser:
                 self.candidates = self.create_candidates()
         else:
             self.candidates = self.create_candidates()
+        
+        if self.eq_cons is not None:
+            self.candidates = self.candidates[np.where(np.all(self.eq_cons(self.candidates) == 0, axis=0))[0]]
+        if self.ineq_cons is not None:
+            self.candidates = self.candidates[np.where(np.all(self.eq_cons(self.candidates) <= 0, axis=0))[0]]
         
         acqf_values = self.acqf(self.candidates)
         best_x = self.candidates[np.argmin(acqf_values)]
@@ -165,7 +171,7 @@ class Optimiser:
 
         Returns
         -------
-        next_x : np.array of shape (1, func.dim)
+        next_x : np.array of shape (func.dim,)
         '''
 
         if self.num_opt:
@@ -191,7 +197,7 @@ class Optimiser:
         '''
 
         if X is None:
-            X = self.create_candidates(N=1) # TODO: krivo, ispravit'
+            X = self.create_candidates(N=-1)
             X, y = self.func.sample(X)
 
         self.res, self.params = np.array([[np.min(self.func(X))]]), np.array([X[np.argmin(self.func(X)), :]])
