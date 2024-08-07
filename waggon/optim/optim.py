@@ -35,6 +35,12 @@ class Optimiser:
         num_opt : bool, default = False
             Whether the acquisition function is optimised numerically or not. If False,
             the search of the next best parameters is done via direct search.
+        
+        eq_cons : dict, default = None
+            Equality-type constraints for numerical optimisation.
+        
+        ineq_cons : dict, default = None
+            Ineqaulity-type constraints for numerical optimisation.
 
         fix_candidates : bool, default = False if num_opt else True
             Whether the candidate points should be fixed or not.
@@ -53,7 +59,7 @@ class Optimiser:
             Controls verbosity when fitting and predicting. By default only a progress bar over the
             optimisation loop is displayed.
         
-        save_results : bool, default = False # TODO: make default True
+        save_results : bool, default = True
             Whether results are saved or not.
         '''
         super(Optimiser, self).__init__()
@@ -65,12 +71,14 @@ class Optimiser:
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
+        self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
+        self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
         self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
         self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else False
+        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.surr.verbose   = self.verbose
         self.candidates     = None
     
@@ -119,8 +127,11 @@ class Optimiser:
 
         for x0 in candidates:
 
-            opt_res = minimize(fun=self.acqf, x0=x0, bounds=self.func.domain, method='L-BFGS-B')
-
+            if (self.eq_cons is None) and (self.ineq_cons is None):
+                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain)
+            else:
+                opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
+            
             if opt_res.fun < best_acqf:
                 best_acqf = opt_res.fun
                 best_x = opt_res.x
@@ -227,11 +238,11 @@ class Optimiser:
         if self.save_results:
             self._save()
         
-        def _save(self, base_dir='test_results'):
-            res_path = create_dir(self.func, self.acqf.name, self.surrogate.name, base_dir=base_dir)
+    def _save(self, base_dir='test_results'):
+        res_path = create_dir(self.func, self.acqf.name, self.surrogate.name, base_dir=base_dir)
 
-            with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
-                pickle.dump(self.res, f)
+        with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+            pickle.dump(self.res, f)
 
 
 _PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
