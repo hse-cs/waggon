@@ -182,7 +182,7 @@ class Optimiser:
         
         Returns
         -------
-        next_x : np.array of shape (func.dim,)
+        next_x : np.array of shape (func.dim, n_pred)
         '''
 
         self.surr.fit(X, y)
