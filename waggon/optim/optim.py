@@ -165,10 +165,21 @@ class Optimiser:
         
         return best_x
 
-    def predict(self, X, y):
+    def predict(self, X, y, n_pred=1):
         '''
         Predicts the next best set of parameter values by optimising the acquisition function.
+        
+        Parameters
+        ----------
+        X : np.array of shape (n_samples * func.n_obs, func.dim)
+            Training input points.
 
+        y : np.array of shape (n_samples * func.n_obs, func.dim)
+            Target values of the black-box function.
+        
+        n_pred : int, defult = 1
+            Number of predictions to make.
+        
         Returns
         -------
         next_x : np.array of shape (func.dim,)
@@ -179,12 +190,15 @@ class Optimiser:
         self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
         self.acqf.surr = self.surr
 
-        if self.num_opt:
-            next_x = self.numerical_search()
-        else:
-            next_x = self.direct_search()
+        next_x = []
 
-        return np.array([next_x])
+        for j in range(n_pred):
+            if self.num_opt:
+                next_x.append(self.numerical_search())
+            else:
+                next_x.append(self.direct_search())
+
+        return np.array(next_x)
     
     def optimise(self, X=None, y=None, **kwargs):
         '''
