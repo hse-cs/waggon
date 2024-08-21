@@ -11,3 +11,5 @@ waggon/optim/.DS_Store
 waggon/surrogates/.DS_Store
 waggon/utils/.DS_Store
 waggon/.DS_Store
+listing.py
+listing.tex

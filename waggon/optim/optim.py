@@ -165,7 +165,7 @@ class Optimiser:
         
         return best_x
 
-    def predict(self):
+    def predict(self, X, y):
         '''
         Predicts the next best set of parameter values by optimising the acquisition function.
 
@@ -174,6 +174,11 @@ class Optimiser:
         next_x : np.array of shape (func.dim,)
         '''
 
+        self.surr.fit(X, y)
+            
+        self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
+        self.acqf.surr = self.surr
+
         if self.num_opt:
             next_x = self.numerical_search()
         else:
@@ -181,7 +186,7 @@ class Optimiser:
 
         return np.array([next_x])
     
-    def optimise(self, X=None, y=None):
+    def optimise(self, X=None, y=None, **kwargs):
         '''
         Runs the optimisation of the black-box function.
 
@@ -199,8 +204,11 @@ class Optimiser:
         if X is None:
             X = self.create_candidates(N=-1)
             X, y = self.func.sample(X)
-
-        self.res, self.params = np.array([[np.min(self.func(X))]]), np.array([X[np.argmin(self.func(X)), :]])
+            self.res = np.array([[np.min(self.func(X))]])
+            self.params = np.array([X[np.argmin(self.func(X)), :]])
+        else:
+            self.res = np.array([np.min(y)])
+            self.params = np.array([X[np.argmin(y), :]])
 
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
@@ -208,13 +216,8 @@ class Optimiser:
             opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop', leave=True, position=0)
 
         for i in opt_loop:
-            
-            self.surr.fit(X, y)
-            
-            self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-            self.acqf.surr = self.surr
 
-            next_x = self.predict()
+            next_x = self.predict(X, y)
             next_f = np.array([self.func(next_x)])
 
             if next_f <= self.res[-1, :]:
