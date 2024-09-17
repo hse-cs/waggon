@@ -100,12 +100,15 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
         if cuda:
             self.G.cuda()
             self.D.cuda()
-            X.cuda()
-            y.cuda()
         
         X = Tensor(X)
         y = Tensor(y)
         X_train = TensorDataset(X, y)
+
+        if cuda:
+            X.cuda()
+            y.cuda()
+            X_train.cuda()
         
         if self.scheduler:
             self.G_opt = torch.optim.Adam(self.G.parameters(), lr=self.G_lr*1e2)
