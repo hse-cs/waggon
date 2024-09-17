@@ -8,8 +8,8 @@ from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import TensorDataset, DataLoader
 
-# cuda = True if torch.cuda.is_available() else False
-Tensor = torch.FloatTensor #torch.cuda.FloatTensor if cuda else 
+cuda = True if torch.cuda.is_available() else False
+Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 
 class Generator(nn.Module):
@@ -97,6 +97,12 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
         if self.D is None:
             self.D = Discriminator(n_inputs=X.shape[-1] + y.shape[-1], hidden_size=self.hidden_size)
         
+        if cuda:
+            self.G.cuda()
+            self.D.cuda()
+            X.cuda()
+            y.cuda()
+        
         X = Tensor(X)
         y = Tensor(y)
         X_train = TensorDataset(X, y)
@@ -168,6 +174,10 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
     
     
     def sample(self, X_cond):
+        
+        if cuda:
+            X_cond.cuda()
+
         noise = Variable(Tensor(np.random.normal(0, 1, (X_cond.shape[0], self.latent_dim))))
         X_gen = self.G(Tensor(X_cond).detach(), noise.detach())
         return X_gen.detach().numpy()
