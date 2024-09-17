@@ -188,6 +188,7 @@ class Optimiser:
         self.surr.fit(X, y)
             
         self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
+        self.acqf.conds = X[::self.func.n_obs]
         self.acqf.surr = self.surr
 
         next_x = []

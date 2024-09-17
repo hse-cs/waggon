@@ -2,7 +2,7 @@ import argparse
 from waggon.utils import display
 from waggon import functions as f
 from waggon.optim import Optimiser
-from waggon.acquisitions import WU, EI, CB
+from waggon.acquisitions import WU, WU_IDW, EI, CB
 from waggon.surrogates import BNN, DE, DGP, GAN, GP
 
 FUNCS = {
@@ -25,6 +25,7 @@ SURR = {
 
 ACQF = {
     'wu':  WU(),
+    'wu-idw': WU_IDW(),
     'ei':  EI(),
     'lcb': CB(minimise=True),
     'ucb': CB(minimise=False)
@@ -37,12 +38,12 @@ def main():
     parser.add_argument('-f', '--function', help='optimise the given function', default='thc', choices=['thc', 'ackley', 'levi', 'himmelblau', 'rosenbrock', 'tang', 'holder'])
     parser.add_argument('-d', '--dimensions', type=int, help='dimensionality of the experiment', default=None)
     parser.add_argument('-s', '--surrogate', help='surrogate for optimisation', default='gan', choices=['gan', 'bnn', 'de', 'dgp', 'gp'])
-    parser.add_argument('-a', '--acquisition', help='acqusition function to use for optimisation', default='wu', choices=['wu', 'ei', 'lcb', 'ucb'])
+    parser.add_argument('-a', '--acquisition', help='acqusition function to use for optimisation', default='wu', choices=['wu', 'wu-idw', 'ei', 'lcb', 'ucb'])
     parser.add_argument('-v', '--verbose', type=int, help='increase output verbose', choices=[0, 1, 2], default=1)
 
     args = parser.parse_args()
 
-    if (args.surrogate == 'gan' and args.acquisition != 'wu') or (args.surrogate != 'gan' and args.acquisition == 'wu'):
+    if (args.surrogate == 'gan' and not ('wu' in args.acquisition)) or (args.surrogate != 'gan' and 'wu' in args.acquisition):
         raise ValueError(f'Surrogate {args.surrogate} is not compatible with {args.acquisition} acquisition function')
 
     for i, seed in enumerate(SEEDS):
