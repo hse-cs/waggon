@@ -263,7 +263,7 @@ class Optimiser:
             self._save()
         
     def _save(self, base_dir='test_results'):
-        res_path = create_dir(self.func, self.acqf.name, self.surrogate.name, base_dir=base_dir)
+        res_path = create_dir(self.func, self.acqf.name, self.surr.name, base_dir=base_dir)
 
         with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
