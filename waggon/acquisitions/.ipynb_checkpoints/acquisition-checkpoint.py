@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 from scipy.stats import norm, energy_distance as Wdist
 
 
@@ -20,9 +21,10 @@ class Acquisition:
         '''
         super(Acquisition, self).__init__()
 
-        self.y         = None
-        self.name      = None
-        self.surr      = None
+        self.y     = None
+        self.name  = None
+        self.surr  = None
+        self.conds = None
     
     def __call__(self):
         '''
@@ -140,24 +142,6 @@ class WU(Acquisition):
         self.kappa    = kappa
         self.minimise = minimise
     
-    def _idw(self):
-        conds = self.X[:, 1:][::100]
-        print(conds)
-        dist = cdist(conds, inter_conds)
-
-        weights = 1.0/(dist+1e-12)**self.power
-
-        weights /= weights.sum(axis=0)
-
-        # print(W.shape, weights.shape)
-
-        std = np.dot(W, weights)
-
-        # print(std.shape)
-
-        # std = np.sum(std, axis=0)
-        std = np.diag(std)
-    
     def __call__(self, x):
         '''
         Parameters
@@ -188,5 +172,68 @@ class WU(Acquisition):
             regret = mu - self.kappa * wu
         else:
             regret = mu + self.kappa * wu
+        
+        return regret
+
+
+class WU_IDW(Acquisition):
+    def __init__(self, kappa=2.0, minimise=True, power=1.0):
+        '''
+        Inverse distance weighted Wasserstein Uncertainty based regret.
+
+        Parameters
+        ----------
+        kappa : float, default = 2.0
+            Exploration v. Exploitation coefficient.
+        
+        minimise : bool, default = True
+            Whether the objective is minimised or not.
+        '''
+        super(WU_IDW, self).__init__()
+
+        self.name     = 'WU-IDW'
+        self.kappa    = kappa
+        self.minimise = minimise
+        self.power    = power
+
+    def __call__(self, x):
+        '''
+        Parameters
+        ----------
+        x : np.array of shape (n_samples * func.n_obs, func.dim)
+            Candidate points.
+        
+        Returns
+        -------
+        regret : np.array of shape (n_candidates, 1)
+            Wasserstein uncertainty based regret.
+        '''
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+        
+        if x.shape[0] == self.y.shape[0] * self.y.shape[1]:
+            y_gen = self.surr.sample(x)
+        else:
+            y_gen = np.concatenate([self.surr.sample(x) for _ in range(self.y.shape[1])])
+        
+        y_gen = y_gen.reshape(y_gen.shape[0]//self.y.shape[1], self.y.shape[1])
+
+        mu = np.mean(y_gen, axis=-1)
+        wu = [[Wdist(self.y[i, :], y_gen[j, :]) for i in range(self.y.shape[0])] for j in range(y_gen.shape[0])]
+        
+        dist = cdist(self.conds, x)
+
+        weights = 1.0 / (dist + 1e-12)**self.power
+        
+        weights /= weights.sum(axis=0)
+        
+        std = np.dot(wu, weights)
+        
+        std = np.diag(std)
+
+        if self.minimise:
+            regret = mu - self.kappa * std
+        else:
+            regret = mu + self.kappa * std
         
         return regret

@@ -215,7 +215,7 @@ class Optimiser:
         y : np.array of shape (n_samples * func.n_obs, func.dim), default = None
             Target values of the black-box function.
         '''
-
+        
         if X is None:
             X = self.create_candidates(N=-1)
             X, y = self.func.sample(X)
@@ -228,7 +228,7 @@ class Optimiser:
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
         else:
-            opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop', leave=True, position=0)
+            opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop started...', leave=True, position=0)
 
         for i in opt_loop:
 
@@ -251,6 +251,9 @@ class Optimiser:
                 error = np.min(np.linalg.norm(self.func.glob_min - X, ord=2, axis=-1), axis=-1)
             elif self.error_type == 'f':
                 error = np.min(np.linalg.norm(self.func(self.func.glob_min) - y, ord=2, axis=-1), axis=-1)
+            
+            if self.verbose > 0:
+                opt_loop.set_description(f"Optimisation error: {error:.4f}")
             
             if error <= self.eps:
                 print('Experiment finished successfully')

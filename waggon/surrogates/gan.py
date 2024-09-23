@@ -121,7 +121,7 @@ class WGAN_GP(GenSurrogate):# TODO: add cuda
         
         fit_loop = range(self.n_epochs)
         if self.verbose > 1:
-            fit_loop = tqdm(fit_loop, unit="epoch")
+            fit_loop = tqdm(fit_loop, unit="epoch", leave=True, position=2)
         
         for e in fit_loop:
             for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):
