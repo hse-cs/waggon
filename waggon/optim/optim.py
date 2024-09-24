@@ -236,8 +236,8 @@ class Optimiser:
             next_f = np.array([self.func(next_x)])
 
             if next_f <= self.res[-1, :]:
-                self.res = np.concatenate((self.res, next_f))
-                self.params = np.concatenate((self.params, next_x))
+                self.res = np.concatenate((self.res, next_f.reshape(1, -1)))
+                self.params = np.concatenate((self.params, next_x.reshape(1, -1)))
             else:
                 self.res = np.concatenate((self.res, self.res[-1, :].reshape(1, -1)))
                 self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))

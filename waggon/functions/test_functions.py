@@ -38,7 +38,7 @@ class Function:
         super(Function, self).__init__()
 
         self.dim           = kwargs['dim'] if 'dim' in kwargs else 1 # TODO: add q-dimensional output?
-        self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([-10, 10])
+        self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([[-10, 10]])
         self.name          = kwargs['name'] if 'name' in kwargs else 'parabola'
         self.glob_min      = kwargs['glob_min'] if 'glob_min' in kwargs else np.zeros(self.dim)
         self.f             = kwargs['f'] if 'f' in kwargs else lambda x: x**2

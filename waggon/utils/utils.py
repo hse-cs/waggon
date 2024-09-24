@@ -34,16 +34,17 @@ def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_res
 
 def display(source, ax=None, base_dir='test_results', y_label=False, x_label=False, title=None, **kwargs): # TODO: add option to plot single results
 
-    if type(source) == 'str': # if function directory is given; used when plotting all results
-        epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
+    epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-1
+    max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
 
-        if ax is None:
+    results = {}
+
+    if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8))
-        
-        res_path = f'{base_dir}/{source}'
 
-        results = {}
+    if type(source) == 'str': # if function directory is given; used when plotting all results
+
+        res_path = f'{base_dir}/{source}'
 
         acqfs = []
         for (_, dirnames, _) in os.walk(res_path):
@@ -66,8 +67,9 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
                 j += 1 # TODO: fix colouring; works fine when the ran models are the same across all experiments
 
     elif type(source) == Optimiser:
-        results[f'{source.surr.name}'] = {'res': (source.res, np.ones(source.res.shape)),
+        results[f'{source.surr.name}'] = {'res': (np.squeeze(source.res), np.zeros(source.res.shape[0])),
                                           'color': 'C0', 'label': f'{source.surr.name} ({source.acqf.name})'}
+        
         title = source.func.name if title is None else title
 
     y_lims = []
@@ -75,6 +77,7 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
     ax.hlines(epsilon, 0, max_iter, color='grey', linestyles='--', linewidth=5)
 
     for key in results.keys():
+        
         ax.plot(np.arange(results[key]['res'][0].shape[0]), results[key]['res'][0], '-', linewidth=3, label=key, color=results[key]['color'])
         ax.fill_between(np.arange(results[key]['res'][0].shape[0]),
                         results[key]['res'][0] - results[key]['res'][1],

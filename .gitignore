@@ -13,3 +13,5 @@ waggon/utils/.DS_Store
 waggon/.DS_Store
 listing.py
 listing.tex
+research/
+tests/test_results
