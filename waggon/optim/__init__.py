@@ -1,5 +1,6 @@
-from .optim import Optimiser
+from .optim import Optimiser, SurrogateOptimiser
 
 __all__ = [
-    'Optimiser'
+    'Optimiser',
+    'SurrogateOptimiser'
 ]

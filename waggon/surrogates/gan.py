@@ -44,7 +44,7 @@ class Discriminator(nn.Module):
         return x
 
     
-class WGAN_GP(GenSurrogate):# TODO: add cuda
+class WGAN_GP(GenSurrogate):
     def __init__(self, **kwargs):
         super(WGAN_GP, self).__init__()
 

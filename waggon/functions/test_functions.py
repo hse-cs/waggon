@@ -45,7 +45,7 @@ class Function:
         self.log_transform = kwargs['log_transform'] if 'log_transform' in kwargs else True
         self.log_eps       = kwargs['log_eps'] if 'log_eps' in kwargs else 1e-8
         self.sigma         = kwargs['sigma'] if 'sigma' in kwargs else 1e-1
-        self.n_obs         = kwargs['n_obs'] if 'n_obs' in kwargs else 100
+        self.n_obs         = kwargs['n_obs'] if 'n_obs' in kwargs else 1
     
     def __call__(self, x):
         '''
