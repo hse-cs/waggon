@@ -1,4 +1,4 @@
-from .surr import Surrogate
+from .base import Surrogate
 
 import GPy
 import numpy as np

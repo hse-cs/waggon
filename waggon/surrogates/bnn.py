@@ -1,4 +1,4 @@
-from .surr import Surrogate
+from .base import Surrogate
 
 import torch
 import numpy as np

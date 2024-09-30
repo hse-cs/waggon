@@ -3,7 +3,7 @@ from .gp import GP
 from .bnn import BNN
 from .dgp import DGP
 from .gan import WGAN_GP as GAN
-from .surr import Surrogate, GenSurrogate
+from .base import Surrogate, GenSurrogate
 
 __all__ = [
     'BNN',

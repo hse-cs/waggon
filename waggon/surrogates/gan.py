@@ -1,6 +1,6 @@
 import numpy as np
 from tqdm import tqdm
-from .surr import GenSurrogate
+from .base import GenSurrogate
 
 import torch
 import torch.nn as nn
