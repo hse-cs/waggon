@@ -1,17 +1,17 @@
 import os
 import pickle
 import numpy as np
-from waggon.optim import Optimiser
+from waggon.optim import Optimiser, SurrogateOptimiser
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_results', epsilon=1e-1):
+def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_results', exp_transform=True):
 
     res_path = f'{base_dir}/{func_dir}/{acqf_name}/{surr_name}'
     
     f = []
-    for (dirpath, dirnames, filenames) in os.walk(res_path):
+    for (_, _, filenames) in os.walk(res_path):
         f.extend(filenames)
         break
     
@@ -24,25 +24,31 @@ def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_res
         with open(f'{res_path}/{file}', "rb") as input_file:
             results.append(np.squeeze(pickle.load(input_file)))
     
-    for i in range(len(results)):
-        while len(results[i]) < len(max(results, key=len)):
-            np.insert(results[i], -1, results[i][-1])
+    res = np.zeros((len(results), len(max(results, key=len))))
     
-    return np.mean(results, axis=0), np.std(results, axis=0)
+    for i in range(len(results)):
+        res[i, :results[i].shape[0]] = results[i]
+        
+        if results[i].shape[0] < res.shape[0]:
+            res[i, results[i].shape[0]:] = results[i][-1] * np.ones(res.shape[1] - results[i].shape[0])
+    
+    if exp_transform:
+        res = np.exp(res)
+    
+    return np.mean(res, axis=0), np.std(res, axis=0)
 
 
 def display(source, ax=None, base_dir='test_results', y_label=False, x_label=False, title=None, **kwargs): # TODO: add option to plot single results
 
+    results = {}
+    # TODO: move args to saved results
     epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-1
     max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-
-    results = {}
 
     if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8))
 
-    if type(source) == 'str': # if function directory is given; used when plotting all results
-
+    if type(source) == str: # if function directory is given; used when plotting all results
         res_path = f'{base_dir}/{source}'
 
         acqfs = []
@@ -53,23 +59,24 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
         j = 0
 
         for acqf in acqfs:
-
             surrs = []
             for (_, dirnames, _) in os.walk(f'{res_path}/{acqf}/'):
                 surrs.extend(dirnames)
                 break
 
             for surr in surrs:
-
                 results[surr] = {'res': load_results_for_plotting(source, acqf, surr, epsilon=epsilon),
                                         'color': f'C{j}', 'label': f'{surr} ({acqf})'}
+                
                 j += 1 # TODO: fix colouring; works fine when the ran models are the same across all experiments
 
-    elif type(source) == Optimiser:
-        results[f'{source.surr.name}'] = {'res': (np.squeeze(source.res), np.zeros(source.res.shape[0])),
+    elif type(source) in [Optimiser, SurrogateOptimiser]:
+        results[f'{source.surr.name}'] = {'res': (np.array(source.errors), np.zeros_like(source.errors)),
                                           'color': 'C0', 'label': f'{source.surr.name} ({source.acqf.name})'}
         
         title = source.func.name if title is None else title
+        epsilon = source.eps
+        max_iter = source.max_iter
 
     y_lims = []
     
@@ -89,12 +96,17 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
     if y_label: ax.set_ylabel('Distance to optimum', fontsize=16, weight='bold')
     if x_label: ax.set_xlabel('Number of simulator calls', fontsize=16, weight='bold')
     
-    y_lim = min(epsilon, np.min(y_lims))
+    try:
+        y_lim = min(epsilon, np.min(y_lims))
+    except ValueError:
+        y_lim = -1.0
+        pass
+    
     ax.set_ylim(bottom=9e-1 * (y_lim if y_lim > 0 else epsilon))
     ax.tick_params(labelsize=16)
     ax.set_yscale('log')
 
-    if type(source) == Optimiser:
+    if type(source) in [Optimiser, SurrogateOptimiser]:
         handles = [mpatches.Patch(color=results[key]['color'], label=results[key]['label']) for key in results.keys()]
         fig.legend(handles=handles, bbox_to_anchor=(0.5, -0.1), loc='lower center', prop={'weight':'bold', 'size': 24})
         plt.show()

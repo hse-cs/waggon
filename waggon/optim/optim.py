@@ -7,11 +7,12 @@ from scipy.stats import qmc
 from scipy.optimize import minimize
 
 from .utils import create_dir, _get_olhs_num
+from ..functions import Function
 
 
-class Optimiser:
-    def __init__(self, func, **kwargs):
-        super(Optimiser, self).__init__()
+class Optimiser(object):
+    def __init__(self, **kwargs):
+        super(Optimiser, self).__init__() # TODO: fix desc
         '''
         Black-box optimiser.
 
@@ -55,7 +56,7 @@ class Optimiser:
         save_results : bool, default = True
             Whether results are saved or not.
         '''
-        self.func           = func
+        self.func           = kwargs['func'] if 'func' in kwargs else Function()
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
@@ -115,6 +116,8 @@ class Optimiser:
         y : np.array of shape (n_samples * func.n_obs, func.dim), default = None
             Target values of the black-box function.
         '''
+
+        self.errors = []
         
         if X is None:
             X = self.create_candidates(N=-1)
@@ -152,6 +155,8 @@ class Optimiser:
             elif self.error_type == 'f':
                 error = np.min(np.linalg.norm(self.func(self.func.glob_min) - y, ord=2, axis=-1), axis=-1)
             
+            self.errors.append(error)
+            
             if self.verbose > 0:
                 opt_loop.set_description(f"Optimisation error: {error:.4f}")
             
@@ -175,61 +180,62 @@ class Optimiser:
 
 
 class SurrogateOptimiser(Optimiser):
+    '''
+    Surrogate based black-box optimiser.
+
+    Parameter
+    ----------
+    func : Callable, waggon.functions.Function
+        Black-box function to be optimised.
+    
+    surr : waggon.surrogates.Surrogate or waggon.surrogate.GenSurrogate
+        Surrogate model for the black-box function.
+    
+    acqf : waggon.acquisitions.Acquisition
+        Acquisition function defining the optimisation strategy.
+    
+    max_iter : int, default = 100
+        Maximum number of optimisation loop iterations.
+    
+    eps : float, default = 1e-1
+        Epsilon-solution criterion value.
+    
+    error_type : {'x', 'f'}, default = 'x'
+        Optimisation error type - either in argument, 'x', or function, 'f'.
+    
+    num_opt : bool, default = False
+        Whether the acquisition function is optimised numerically or not. If False,
+        the search of the next best parameters is done via direct search.
+    
+    eq_cons : dict, default = None
+        Equality-type constraints for numerical optimisation.
+    
+    ineq_cons : dict, default = None
+        Ineqaulity-type constraints for numerical optimisation.
+
+    fix_candidates : bool, default = False if num_opt else True
+        Whether the candidate points should be fixed or not.
+    
+    n_candidates : int, default = 1 if num_opt else 101**2
+        Number of candidates points.
+    
+    olhs : bool, default = True
+        Whether orthogonal Latin hypercube sampling (LHS) is used for choosing candidate points.
+        If False, simple LHS is used.
+
+    lhs_seed : int, default = None
+        Controls the randomness of candidates sampled via (orthogonal) LHS.
+    
+    verbose : int, default = 1
+        Controls verbosity when fitting and predicting. By default only a progress bar over the
+        optimisation loop is displayed.
+    
+    save_results : bool, default = True
+        Whether results are saved or not.
+    '''
     def __init__(self, func, surr, acqf, **kwargs):
-        super(SurrogateOptimiser, self).__init__()
-        '''
-        Surrogate based black-box optimiser.
-
-        Parameter
-        ----------
-        func : Callable, waggon.functions.Function
-            Black-box function to be optimised.
+        super(SurrogateOptimiser).__init__()
         
-        surr : waggon.surrogates.Surrogate or waggon.surrogate.GenSurrogate
-            Surrogate model for the black-box function.
-        
-        acqf : waggon.acquisitions.Acquisition
-            Acquisition function defining the optimisation strategy.
-        
-        max_iter : int, default = 100
-            Maximum number of optimisation loop iterations.
-        
-        eps : float, default = 1e-1
-            Epsilon-solution criterion value.
-        
-        error_type : {'x', 'f'}, default = 'x'
-            Optimisation error type - either in argument, 'x', or function, 'f'.
-
-        num_opt : bool, default = False
-            Whether the acquisition function is optimised numerically or not. If False,
-            the search of the next best parameters is done via direct search.
-        
-        eq_cons : dict, default = None
-            Equality-type constraints for numerical optimisation.
-        
-        ineq_cons : dict, default = None
-            Ineqaulity-type constraints for numerical optimisation.
-
-        fix_candidates : bool, default = False if num_opt else True
-            Whether the candidate points should be fixed or not.
-        
-        n_candidates : int, default = 1 if num_opt else 101**2
-            Number of candidates points.
-        
-        olhs : bool, default = True
-            Whether orthogonal Latin hypercube sampling (LHS) is used for choosing candidate points.
-            If False, simple LHS is used.
-
-        lhs_seed : int, default = None
-            Controls the randomness of candidates sampled via (orthogonal) LHS.
-        
-        verbose : int, default = 1
-            Controls verbosity when fitting and predicting. By default only a progress bar over the
-            optimisation loop is displayed.
-        
-        save_results : bool, default = True
-            Whether results are saved or not.
-        '''
         self.func           = func
         self.surr           = surr
         self.acqf           = acqf

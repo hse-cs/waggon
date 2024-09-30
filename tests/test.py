@@ -1,7 +1,7 @@
 import argparse
 from waggon.utils import display
 from waggon import functions as f
-from waggon.optim import Optimiser
+from waggon.optim import SurrogateOptimiser
 from waggon.acquisitions import WU, WU_IDW, EI, CB
 from waggon.surrogates import BNN, DE, DGP, GAN, GP
 
@@ -42,7 +42,7 @@ def main():
     parser.add_argument('-v', '--verbose', type=int, help='increase output verbose', choices=[0, 1, 2], default=1)
 
     args = parser.parse_args()
-
+    
     if (args.surrogate == 'gan' and not ('wu' in args.acquisition)) or (args.surrogate != 'gan' and 'wu' in args.acquisition):
         raise ValueError(f'Surrogate {args.surrogate} is not compatible with {args.acquisition} acquisition function')
 
@@ -50,12 +50,12 @@ def main():
         
         print(f'Experiment #{i}')
 
-        opt = Optimiser(func=FUNCS[args.function](args.dimensions) if args.dimensions else FUNCS[args.function](),
-                        surr=SURR[args.surrogate],
-                        acqf=ACQF[args.acquisition],
-                        verbose=args.verbose,
-                        seed=seed,
-                        save_results=True)
+        opt = SurrogateOptimiser(func=FUNCS[args.function](args.dimensions) if args.dimensions else FUNCS[args.function](),
+                                surr=SURR[args.surrogate],
+                                acqf=ACQF[args.acquisition],
+                                verbose=args.verbose,
+                                seed=seed,
+                                save_results=True)
         opt.optimise()
         display(opt)
 
