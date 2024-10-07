@@ -112,15 +112,11 @@
               
                 <h1 id="black-box-optimisation">Black-box Optimisation</h1>
 <p>Simulation of real-world experiments is key to scientific discoveries and engineering solutions. Such techniques use parameters describing configurations and architectures of the system. A common challenge is to find the optimal configuration for some objective, e.g., such that it maximises efficiency or minimises costs and overhead.</p>
-<p>The simulator is treated as a black box experiment. This means that observations come from an unknown and likely difficult-to- estimate function. Using a surrogate model for black-box optimisation (BBO) is an established technique, as BBO has a rich history of both gradient and gradient-free methods, most of which come from tackling problems that arise in physics, chemistry and engineering.</p>
+<p>The simulator is treated as a black box experiment. This means that observations come from an unknown and likely difficult-to-estimate function. Using a surrogate model for black-box optimisation (BBO) is an established technique, as BBO has a rich history of both gradient and gradient-free methods, most of which come from tackling problems that arise in physics, chemistry and engineering.</p>
 <p>The optimisation problem can be defined as:</p>
-<p>$$
-\inf_{\theta \in \Theta} f(\theta).
-$$</p>
+<p>$\inf_{\theta \in \Theta} f(\theta).$</p>
 <p>And if the black-box function is stochastic, the problem accepts the following form:</p>
-<p>$$
-\inf{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].
-$$</p>
+<p>$\inf{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].$</p>
               
             </div>
           </div><footer>
