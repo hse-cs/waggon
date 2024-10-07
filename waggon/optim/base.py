@@ -5,7 +5,6 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
 
-from .base import Optimiser
 from .utils import _get_olhs_num
 from ..functions import Function
 
