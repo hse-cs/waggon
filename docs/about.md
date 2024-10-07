@@ -6,8 +6,20 @@ The simulator is treated as a black box experiment. This means that observations
 
 The optimisation problem can be defined as:
 
-$\inf_{\theta \in \Theta} f(\theta).$
+$$
+\inf_{\theta \in \Theta} f(\theta).
+$$
 
-And if the black-box function is stochastic, the problem accepts the following form:
+If the black-box function is stochastic, the problem accepts the following form:
 
-$\inf{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].$
+$$
+\inf_{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].
+$$
+
+And in case of distributionally robust optimistion, the objective becomes:
+
+$$
+\inf_{\theta \in \Theta} \sup_{\mu \in \mathcal{P}} \mathbb{E}_{x \sim \mu} \left[ f(\theta, x) \right],
+$$
+
+where $\mathcal{P}$ is an ambiguity set, i.e., set of viable distributions.

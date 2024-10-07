@@ -3,7 +3,8 @@ nav:
   - Home: index.md
   - Black-box optimisation: about.md
   - Optimisation:
-    - optim.md
+    - Optimiser: optim.md
+    - Surrogate based optimisation: surr_opt.md
   - Surrogates:
     - Deep Generative Surrogates: dgm.md
     - Bayesian Neural Networks: bnn.md
