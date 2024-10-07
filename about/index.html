@@ -116,11 +116,17 @@
 <p>Simulation of real-world experiments is key to scientific discoveries and engineering solutions. Such techniques use parameters describing configurations and architectures of the system. A common challenge is to find the optimal configuration for some objective, e.g., such that it maximises efficiency or minimises costs and overhead.</p>
 <p>The simulator is treated as a black box experiment. This means that observations come from an unknown and likely difficult-to-estimate function. Using a surrogate model for black-box optimisation (BBO) is an established technique, as BBO has a rich history of both gradient and gradient-free methods, most of which come from tackling problems that arise in physics, chemistry and engineering.</p>
 <p>The optimisation problem can be defined as:</p>
-<p>$\inf_{\theta \in \Theta} f(\theta).$</p>
+<p>$$
+\inf_{\theta \in \Theta} f(\theta).
+$$</p>
 <p>If the black-box function is stochastic, the problem accepts the following form:</p>
-<p>$\inf{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].$</p>
+<p>$$
+\inf_{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].
+$$</p>
 <p>And in case of distributionally robust optimistion, the objective becomes:</p>
-<p>$\inf{\theta \in \Theta} \sup{\mu \in \mathcal{P}} \mathbb{E}_{x \sim \mu} \left[ f(\theta, x) \right],$</p>
+<p>$$
+\inf_{\theta \in \Theta} \sup_{\mu \in \mathcal{P}} \mathbb{E}_{x \sim \mu} \left[ f(\theta, x) \right],
+$$</p>
 <p>where $\mathcal{P}$ is an ambiguity set, i.e., set of viable distributions.</p>
               
             </div>
