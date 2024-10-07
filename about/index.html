@@ -51,7 +51,9 @@
               </ul>
               <p class="caption"><span class="caption-text">Optimisation</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../optim/">Optim</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../optim/">Optimiser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../surr_opt/">Surrogate based optimisation</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Surrogates</span></p>
@@ -115,14 +117,17 @@
 <p>The simulator is treated as a black box experiment. This means that observations come from an unknown and likely difficult-to-estimate function. Using a surrogate model for black-box optimisation (BBO) is an established technique, as BBO has a rich history of both gradient and gradient-free methods, most of which come from tackling problems that arise in physics, chemistry and engineering.</p>
 <p>The optimisation problem can be defined as:</p>
 <p>$\inf_{\theta \in \Theta} f(\theta).$</p>
-<p>And if the black-box function is stochastic, the problem accepts the following form:</p>
+<p>If the black-box function is stochastic, the problem accepts the following form:</p>
 <p>$\inf{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].$</p>
+<p>And in case of distributionally robust optimistion, the objective becomes:</p>
+<p>$\inf{\theta \in \Theta} \sup{\mu \in \mathcal{P}} \mathbb{E}_{x \sim \mu} \left[ f(\theta, x) \right],$</p>
+<p>where $\mathcal{P}$ is an ambiguity set, i.e., set of viable distributions.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../optim/" class="btn btn-neutral float-right" title="Optim">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../optim/" class="btn btn-neutral float-right" title="Optimiser">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
