@@ -57,6 +57,8 @@
               <p class="caption"><span class="caption-text">Surrogates</span></p>
               <ul class="current">
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Deep Generative Surrogates</a>
+    <ul class="current">
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../bnn/">Bayesian Neural Networks</a>
                   </li>
@@ -111,7 +113,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>TBD</p>
+                <h2 id="description">Description</h2>
+<p>Having a generator model that would map a simple distribution, $\mathcal{Z}$, to a complex and unknown distribution, $p(\mu)$, is desired in many settings as it allows for the generation of samples from the intractable data space. For our purposes, conditional deep generative models (DGMs) are used to model the stochastic response of the simulator. This allows to model essentially any response shape.</p>
+<p>The goal of a conditional DGM is to obtain a generator $G: \mathbb{R}^s \times \Theta \rightarrow \mathbb{R}^d$ such that distributions $G(\mathcal{Z}; \theta)$ and $p(\mu; \theta)$ match for each $\theta \in \Theta$. Since $\mathcal{Z}$ and $p(\mu)$ are independent, we get $G(\mathcal{Z}; \theta) \sim p(\mu; \theta)$. For simplicity of notation we denote $G(\mathcal{Z}; \theta)$ as $G(\theta)$.</p>
+<p>As per [2], the package contains the implementation of a Wasserstein Generative Adversarial Network with Gradient Penalty (WGAN-GP) to be used with Wasserstein uncertainty.</p>
+<!-- Thus, we explore the search space by training a deep generative surrogate $G$ on the set of ground truths $\mathcal{M}$. For each value $\theta \in \Theta$, we can generate the corresponding response of the simulator $\nu (\theta) = G(\theta)$, i.e., $\nu$ is the predictive distribution at $\theta$. -->
+
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">from waggon.surrogates.gan import WGAN
+</code></pre>
+<p>[2] Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. "Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space." Arxiv abs/2407.1117 (2024). <a href="https://arxiv.org/abs/2407.11917">[arxiv]</a></p>
               
             </div>
           </div><footer>

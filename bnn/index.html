@@ -59,6 +59,8 @@
                   <li class="toctree-l1"><a class="reference internal" href="../dgm/">Deep Generative Surrogates</a>
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Bayesian Neural Networks</a>
+    <ul class="current">
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../de/">Deep Adversarial Ensembles</a>
                   </li>
@@ -111,7 +113,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>TBD</p>
+                <h2 id="description">Description</h2>
+<p>Bayesian inference allows us to learn a probability distribution over possible neural networks. By making a simple adjustment to standard neural network methods, we can approximately solve this inference problem. The resulting approach reduces overfitting, facilitates learning from small datasets, and provides insights into the uncertainty of our predictions.</p>
+<p>In Bayesian inference, instead of relying on a single point estimate of the weights, $w^<em>$, and its associated prediction function, $\hat{y}_{w^</em>}(x)$, as in conventional training, we infer distributions $p(w|D)$ and $p(\hat{y}_{w^*}(x)|D)$. One key advantage of using distributions for model parameters and predictions is the ability to quantify uncertainty, such as by calculating the variance [3].</p>
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">from waggon.surrogates import BNN
+</code></pre>
+<p>[3] Xu, W., Ricky, Li, X. and Duvenaud, D. (2022). Infinitely Deep Bayesian Neural Networks with Stochastic Differential Equations. PMLR, pp.721–738. Available <a href="https://proceedings.mlr.press/v151/xu22a">online</a>.
+‌</p>
               
             </div>
           </div><footer>

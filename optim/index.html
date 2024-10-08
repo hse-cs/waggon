@@ -116,11 +116,9 @@
                 <h2 id="description">Description</h2>
 <p><code>WAGGON</code> focuses on optimisation methods, and <code>Optimiser</code> is a base class for optimisation algorithms. It contains common methods and properties, e.g., <code>optimise</code> that runs the optimisation loop until the chosen error, <code>error_type</code>, is small enough, <code>opt_eps</code>, and <code>create_candidates</code> that samples candidate points using Latin Hyperube sampling.</p>
 <p>The class can be inherited for implementing specific approaches. Currently <code>waggon.optim</code> contains surrogate-based optimisation, <code>SurrogateOptimiser</code> (described in the following <a href="https://hse-cs.github.io/waggon/surr_opt/">section</a>). New methods will be added as our research continues and can be suggested via a pull request.</p>
-<!-- ## Usage
-
-```python
-
-``` -->
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">from waggon.optim import Optimiser
+</code></pre>
               
             </div>
           </div><footer>
