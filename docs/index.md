@@ -35,8 +35,8 @@ The following code snippet (does this and that)
 
 ```python
 import waggon
-from waggon.optim import Optimiser
 from waggon.acquisitions import WU
+from waggon.optim import SurrogateOptimiser
 from waggon.surrogates.gan import WGAN_GP as GAN
 from waggon.test_functions import three_hump_camel
 
@@ -48,12 +48,12 @@ surr = GAN()
 acqf = WU()
 
 # initialise optimiser
-opt = Optimiser(func=func, surr=surr, acqf=acqf)
+opt = SurrogateOptimiser(func=func, surr=surr, acqf=acqf)
 
 # run optimisation
 opt.optimise()
 
-# visualise
+# visualise optimisation results
 waggon.utils.display()
 ```
 

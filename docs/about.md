@@ -7,10 +7,10 @@ The simulator is treated as a black box experiment. This means that observations
 The optimisation problem can be defined as:
 
 $$
-\inf_{\theta \in \Theta} f(\theta).
+\inf_{\theta \in \Theta} f(\theta),
 $$
 
-If the black-box function is stochastic, the problem accepts the following form:
+where $\Theta$ is the search space. If the black-box function is stochastic, the problem accepts the following form:
 
 $$
 \inf_{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].
