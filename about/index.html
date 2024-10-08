@@ -117,9 +117,9 @@
 <p>The simulator is treated as a black box experiment. This means that observations come from an unknown and likely difficult-to-estimate function. Using a surrogate model for black-box optimisation (BBO) is an established technique, as BBO has a rich history of both gradient and gradient-free methods, most of which come from tackling problems that arise in physics, chemistry and engineering.</p>
 <p>The optimisation problem can be defined as:</p>
 <p>$$
-\inf_{\theta \in \Theta} f(\theta).
+\inf_{\theta \in \Theta} f(\theta),
 $$</p>
-<p>If the black-box function is stochastic, the problem accepts the following form:</p>
+<p>where $\Theta$ is the search space. If the black-box function is stochastic, the problem accepts the following form:</p>
 <p>$$
 \inf_{\theta \in \Theta} \mathbb{E}\left[ f(\theta, x) \right].
 $$</p>

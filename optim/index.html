@@ -50,6 +50,8 @@
               <p class="caption"><span class="caption-text">Optimisation</span></p>
               <ul class="current">
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Optimiser</a>
+    <ul class="current">
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../surr_opt/">Surrogate based optimisation</a>
                   </li>
@@ -111,7 +113,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>TBD</p>
+                <h2 id="description">Description</h2>
+<p><code>WAGGON</code> focuses on optimisation methods, and <code>Optimiser</code> is a base class for optimisation algorithms. It contains common methods and properties, e.g., <code>optimise</code> that runs the optimisation loop until the chosen error, <code>error_type</code>, is small enough, <code>opt_eps</code>, and <code>create_candidates</code> that samples candidate points using Latin Hyperube sampling.</p>
+<p>The class can be inherited for implementing specific approaches. Currently <code>waggon.optim</code> contains surrogate-based optimisation, <code>SurrogateOptimiser</code> (described in the following <a href="https://hse-cs.github.io/waggon/surr_opt/">section</a>). New methods will be added as our research continues and can be suggested via a pull request.</p>
+<!-- ## Usage
+
+```python
+
+``` -->
               
             </div>
           </div><footer>

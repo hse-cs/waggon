@@ -52,6 +52,8 @@
                   <li class="toctree-l1"><a class="reference internal" href="../optim/">Optimiser</a>
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Surrogate based optimisation</a>
+    <ul class="current">
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Surrogates</span></p>
@@ -111,7 +113,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>TBD</p>
+                <h2 id="description">Description</h2>
+<p>Surrogate-based optimisation (SBO) carries out optimisation using a surrogate model. SBO does not strive for global accuracy. Instead it only requires the surrogate model to be sufficiently accurate to guide optimisation toward the true optimum. SBO can be particularly useful in several scenarious. For example, when the original model is computationally expensive, or when data is noise, or both [1].</p>
+<p><code>SurrogateOptimiser</code> is based on the <code>Optimiser</code> class. To run, it requires the experiment, <a href="https://hse-cs.github.io/waggon/functions/"><code>waggon.Function</code></a>, the surrogate model, <a href="https://hse-cs.github.io/waggon/custom_surr/"><code>waggon.Surrogate</code></a>, and the acquisition function, <a href="https://hse-cs.github.io/waggon/custom_acqf/"><code>waggon.acquisition</code></a>.</p>
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">import waggon
+from waggon.acquisitions import WU
+from waggon.surrogates.gan import WGAN_GP as GAN
+from waggon.test_functions import three_hump_camel
+
+from waggon.optim import SurrogateOptimiser
+
+# initialise the function to be optimised
+func = three_hump_camel()
+# initialise the surrogate to carry out optimisation
+surr = GAN()
+# initialise optimisation acquisition function
+acqf = WU()
+
+# initialise optimiser
+opt = SurrogateOptimiser(func=func, surr=surr, acqf=acqf)
+
+# run optimisation
+opt.optimise()
+
+# visualise optimisation results
+waggon.utils.display()
+</code></pre>
+<p>[1] Martins, J.R.R.A. and Ning, S.A. (2022) Surrogate-based Optimisation in <em>Engineering design optimization</em>. Cambridge, United Kingdom: Cambridge University Press. </p>
               
             </div>
           </div><footer>
