@@ -5,8 +5,8 @@
 The class can be inherited for implementing specific approaches. Currently `waggon.optim` contains surrogate-based optimisation, `SurrogateOptimiser` (described in the following [section](https://hse-cs.github.io/waggon/surr_opt/)). New methods will be added as our research continues and can be suggested via a pull request.
 
 
-<!-- ## Usage
+## Usage
 
 ```python
-
-``` -->
+from waggon.optim import Optimiser
+```
