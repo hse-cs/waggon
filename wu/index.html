@@ -72,6 +72,8 @@
               <p class="caption"><span class="caption-text">Acquisition Functions</span></p>
               <ul class="current">
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Wasserstein Uncertainty</a>
+    <ul class="current">
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../ei/">Expected Improvement</a>
                   </li>
@@ -111,7 +113,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>TBD</p>
+                <h2 id="description">Description</h2>
+<p>Bayesian optimisation is typically equipped with a Gaussian process (GP), which is defined by a mean function and a kernel function that describes the shape of the covariance. BO with a GP surrogate requires covariance matrix inversion with $O(n^3)$ cost in terms of the number of observations, which is challenging for a large number of responses and in higher dimensions. To make BO scalable [6, 7, 8, 9] consider a low-dimensional lin- ear subspace and decompose it into subsets of dimensions, i.e., some structural assumptions are required that might not hold. In addition, GP requires a proper choice of kernel is crucial. BO may need the construction of new kernels [10]. [11] proposes a greedy approach for automatically building a kernel by combining basic kernels such as linear, exponential, periodic, etc., through kernel summation and multiplication.</p>
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">from waggon.acquisitions import WU
+</code></pre>
+<p>[12]</p>
               
             </div>
           </div><footer>
