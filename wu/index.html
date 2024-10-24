@@ -66,7 +66,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../gp/">Gaussian Processes</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../custom_surr/">Custom Surrogates</a>
+                  <li class="toctree-l1"><a class="" href="../custom_surr.md">Custom Surrogates</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Acquisition Functions</span></p>
@@ -114,7 +114,20 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="description">Description</h2>
-<p>As per Ref.[2]</p>
+<p>Ref.[2] suggests a reformulation of the lower confidence bound (LCB) acquisition function, by using Wasserstein balls to quantify uncertainty. Thus moving uncertainty estimation to the Wasserstein space, and accounting for the shape of black-box response.</p>
+<p>For a predictive posterior $\nu$ its uncertainty can be formulated as</p>
+<p>$$
+F(\nu) = \sup_{\mu \in \bar{B}_{\varepsilon}(\nu)} \mathbb{E}^{\mu} [f],
+$$</p>
+<p>where $\bar{B}_{\varepsilon}(\nu)$ is a Wasserstein ball centered at $\nu$ with radius $\varepsilon$.</p>
+<p>For each candidate $\nu$ we take the radius of its Wasserstein ball as the distance to the closest ground truth $\left( \mathcal{M} - set of all ground truths \right)$.</p>
+<p>$$
+\varepsilon = \inf_{\mu \in \mathcal{M}} \mathbb{W}_2(\nu, \mu).
+$$</p>
+<p>Under minor assumptions the supremum is achieved at the boundary. This result is used to reformulate regret for a predictive posterior given by a generative surrogate as $G(\theta)$ as follows:</p>
+<p>$$
+\mathcal{R}<em _in="\in" _mathcal_M="\mathcal{M" _mu="\mu">{\mathbb{W}}(\theta) = \mu(\theta) - \kappa \cdot \inf</em>_2(G(\theta), \mu).
+$$}} \mathbb{W</p>
 <h2 id="usage">Usage</h2>
 <pre><code class="language-python">from waggon.acquisitions import WU
 </code></pre>
@@ -123,7 +136,7 @@
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../custom_surr/" class="btn btn-neutral float-left" title="Custom Surrogates"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../gp/" class="btn btn-neutral float-left" title="Gaussian Processes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../ei/" class="btn btn-neutral float-right" title="Expected Improvement">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -147,7 +160,7 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../custom_surr/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../gp/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../ei/" style="color: #fcfcfc">Next &raquo;</a></span>
