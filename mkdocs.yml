@@ -13,12 +13,12 @@ nav:
     - Optimiser: optim.md
     - Surrogate based optimisation: surr_opt.md
   - Surrogates:
+    - Surrogate-based Optimisation: surr.md
     - Deep Generative Surrogates: dgm.md
     - Bayesian Neural Networks: bnn.md
     - Deep Adversarial Ensembles: de.md
     - Deep Gaussian Processes: dgp.md
     - Gaussian Processes: gp.md
-    - Custom Surrogates: custom_surr.md
   - Acquisition Functions:
     - Wasserstein Uncertainty: wu.md
     - Expected Improvement: ei.md

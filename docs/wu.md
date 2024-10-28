@@ -10,7 +10,7 @@ $$
 
 where $\bar{B}_{\varepsilon}(\nu)$ is a Wasserstein ball centered at $\nu$ with radius $\varepsilon$.
 
-For each candidate $\nu$ we take the radius of its Wasserstein ball as the distance to the closest ground truth $\left( \mathcal{M} - set of all ground truths \right)$.
+For each candidate $\nu$ we take the radius of its Wasserstein ball as the distance to the closest ground truth $\left( \mathcal{M} - \text{set of all ground truths} \right)$.
 
 $$
 \varepsilon = \inf_{\mu \in \mathcal{M}} \mathbb{W}_2(\nu, \mu).
@@ -19,7 +19,7 @@ $$
 Under minor assumptions the supremum is achieved at the boundary. This result is used to reformulate regret for a predictive posterior given by a generative surrogate as $G(\theta)$ as follows:
 
 $$
-\mathcal{R}_{\mathbb{W}}(\theta) = \mu(\theta) - \kappa \cdot \inf_{\mu \in \mathcal{M}} \mathbb{W}_2(G(\theta), \mu).
+\mathcal{R}_{\mathbb{W}}(\theta) = \mu (\theta) - \kappa \cdot \inf_{\mu \in \mathcal{M}} \mathbb{W}_2 (G(\theta), \mu).
 $$
 
 ## Usage
