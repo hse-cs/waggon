@@ -1,15 +1,13 @@
 site_name: WAGGON
 markdown_extensions:
+  - markdown_include.include
   - extra
   - tables
+  - mdx_math:
+      enable_dollar_delimiter: True
   - fenced_code
-  - pymdownx.arithmatex:
-      generic: true
 extra_javascript:
-  # - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-  # - mathjaxhelper.js
-  - mathjax.js
-  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 nav:
   - Home: index.md
   - Black-box optimisation: about.md
