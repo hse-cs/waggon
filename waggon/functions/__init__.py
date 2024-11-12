@@ -1,5 +1,5 @@
 from .base import Function
-from .test_functions import three_hump_camel, rosenbrock, ackley, levi, himmelblau, tang, holder
+from .test_functions import three_hump_camel, rosenbrock, ackley, levi, himmelblau, tang, holder, submanifold, nonlinear_submanifold
 
 __all__ = [
     'Function',
@@ -9,5 +9,7 @@ __all__ = [
     'levi',
     'himmelblau',
     'tang',
-    'holder'
+    'holder',
+    'submanifold',
+    'nonlinear_submanifold'
 ]

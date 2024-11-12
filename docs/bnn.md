@@ -1,3 +1,5 @@
+<!DOCTYPE html><script src="https://cdn.jsdelivr.net/npm/texme@1.2.2"></script><textarea>
+
 ## Description
 
 Bayesian inference allows us to learn a probability distribution over possible neural networks. By making a simple adjustment to standard neural network methods, we can approximately solve this inference problem. The resulting approach reduces overfitting, facilitates learning from small datasets, and provides insights into the uncertainty of our predictions.
