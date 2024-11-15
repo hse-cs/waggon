@@ -19,7 +19,7 @@ $$
 Under minor assumptions the supremum is achieved at the boundary. This result is used to reformulate regret for a predictive posterior given by a generative surrogate as $G(\theta)$ as follows:
 
 $$
-\mathcal{R}_{\mathbb{W}}(\theta) = \mu (\theta) - \kappa \cdot \inf_{\mu \in \mathcal{M}} \mathbb{W}_2 (G(\theta), \mu).
+R_{{\mathbb{W}}} (\theta) = \mu (\theta) - \kappa \cdot \inf_{\mu \in \mathcal{M}} \mathbb{W}_2 (G (\theta), \mu).
 $$
 
 ## Usage
