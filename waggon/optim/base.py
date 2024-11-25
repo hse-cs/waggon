@@ -55,16 +55,16 @@ class Optimiser(object):
         save_results : bool, default = True
             Whether results are saved or not.
         '''
-        self.func           = kwargs['func'] if 'func' in kwargs else Function()
-        self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
-        self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
-        self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
-        self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
-        self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
+        self.func           = kwargs.get('func', Function())
+        self.max_iter       = kwargs.get('max_iter', 100)
+        self.eps            = kwargs.get('eps', 1e-1)
+        self.error_type     = kwargs.get('error_type', 'x')
+        self.fix_candidates = kwargs.get('fix_candidates', True)
+        self.n_candidates   = kwargs.get('n_candidates', 1)
+        self.olhs           = kwargs.get('olhs', True)
+        self.lhs_seed       = kwargs.get('lhs_seed', None)
+        self.verbose        = kwargs.get('verbose', 1)
+        self.save_results   = kwargs.get('save_results', True)
         self.surr.verbose   = self.verbose
         self.candidates     = None
     

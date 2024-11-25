@@ -38,15 +38,15 @@ class Function:
         '''
         super(Function, self).__init__()
 
-        self.dim           = kwargs['dim'] if 'dim' in kwargs else 1 # TODO: add q-dimensional output?
-        self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([[-10, 10]])
-        self.name          = kwargs['name'] if 'name' in kwargs else 'parabola'
-        self.glob_min      = kwargs['glob_min'] if 'glob_min' in kwargs else np.zeros(self.dim)
-        self.f             = kwargs['f'] if 'f' in kwargs else lambda x: x**2
-        self.log_transform = kwargs['log_transform'] if 'log_transform' in kwargs else True
-        self.log_eps       = kwargs['log_eps'] if 'log_eps' in kwargs else 1e-8
-        self.sigma         = kwargs['sigma'] if 'sigma' in kwargs else 1e-1
-        self.n_obs         = kwargs['n_obs'] if 'n_obs' in kwargs else 1
+        self.dim           = kwargs.get('dim', 1)  # TODO: add q-dimensional output?
+        self.domain        = kwargs.get('domain', np.array([-10, 10]))
+        self.name          = kwargs.get('name', 'parabola')
+        self.glob_min      = kwargs.get('glob_min', np.zeros(self.dim))
+        self.f             = kwargs.get('f', lambda x: x ** 2)
+        self.log_transform = kwargs.get('log_transform', True)
+        self.log_eps       = kwargs.get('log_eps', 1e-8)
+        self.sigma         = kwargs.get('sigma', 1e-1)
+        self.n_obs         = kwargs.get('n_obs', 1)
     
     def __call__(self, x):
         '''
@@ -86,11 +86,11 @@ class Function:
         '''
 
         y = np.random.normal(self.__call__(x[0, :].reshape(1, -1)), self.sigma, (self.n_obs, 1))
-        X = x[0, :]*np.ones((self.n_obs, 1))
+        X = x[0, :] * np.ones((self.n_obs, 1))
         
         for i in range(1, x.shape[0]):
             y_ = np.random.normal(self.__call__(x[i, :].reshape(1, -1)), self.sigma, (self.n_obs, 1))
-            X_ = x[i, :]*np.ones((self.n_obs, 1))
+            X_ = x[i, :] * np.ones((self.n_obs, 1))
 
             y = np.concatenate((y, y_))
             X = np.concatenate((X, X_))
