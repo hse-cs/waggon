@@ -9,7 +9,7 @@ class Function:
         Parameters
         ----------
         dim : int, default = 1
-            Dimensionality of the parameter space
+            Dimensionality of the parameter space (Input dimension)
         
         domain : np.array of shape (dim, 2), default = np.array([-10, 10])
             Contains bounds of the parameter space with the first column containing the smallest bound, and
@@ -85,14 +85,20 @@ class Function:
             Target values of the black-box function.
         '''
 
-        y = np.random.normal(self.__call__(x[0, :].reshape(1, -1)), self.sigma, (self.n_obs, 1))
-        X = x[0, :] * np.ones((self.n_obs, 1))
-        
-        for i in range(1, x.shape[0]):
-            y_ = np.random.normal(self.__call__(x[i, :].reshape(1, -1)), self.sigma, (self.n_obs, 1))
-            X_ = x[i, :] * np.ones((self.n_obs, 1))
+        n_samples, _ = x.shape
+        n_obs = self.n_obs
 
-            y = np.concatenate((y, y_))
-            X = np.concatenate((X, X_))
+        input_dim = self.dim
+        output_dim = 1     
+
+        X = np.expand_dims(x, axis=1) * np.ones((1, n_obs, 1))
+        X = X.reshape(-1, input_dim)
+
+        mu = self.__call__(X) # shape of [n_samples * n_obs, output_dim]
+        y = np.random.normal(mu, self.sigma)
+        
+        if y.ndim == 1:
+            # Crutch. It will be removed in the future
+            y = np.expand_dims(y, axis=-1)
         
         return X, y
