@@ -39,7 +39,7 @@ class Function:
         super(Function, self).__init__()
 
         self.dim           = kwargs.get('dim', 1)  # TODO: add q-dimensional output?
-        self.domain        = kwargs.get('domain', np.array([-10, 10]))
+        self.domain        = kwargs.get('domain', np.array([[-10, 10]]))
         self.name          = kwargs.get('name', 'parabola')
         self.glob_min      = kwargs.get('glob_min', np.zeros(self.dim))
         self.f             = kwargs.get('f', lambda x: x ** 2)
