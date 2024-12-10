@@ -59,7 +59,7 @@ class Function:
         
         Returns
         -------
-        self.f(x) : np.array of shape (n_samples, func.dim)
+        self.f(x) : np.array of shape (n_samples, 1)
             Black-box function values.
         '''
         if not self.log_transform:
