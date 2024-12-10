@@ -125,7 +125,7 @@ class DifferentialEvolutionOptimizer(Optimiser):
             )
 
             if error <= self.eps:
-                print(f'Experiment finished successfully {self.eps}')
+                print(f'Experiment finished successfully')
                 break
         
         if error > self.eps:
