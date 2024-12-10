@@ -62,24 +62,33 @@ class SurrogateOptimiser(Optimiser):
     '''
     def __init__(self, func, surr, acqf, **kwargs):
         super(SurrogateOptimiser).__init__()
+
+        self.func       = func
+        self.surr       = surr
+        self.acqf       = acqf
+        self.max_iter   = kwargs.get('max_iter', 100)
+        self.eps        = kwargs.get('eps', 1e-1)
+        self.error_type = kwargs.get('error_type', 'x')
+        self.num_opt    = kwargs.get('num_opt', False)
+        self.eq_cons    = kwargs.get('eq_cons', None)
+        self.ineq_cons  = kwargs.get('ineq_cons', None)
         
-        self.func           = func
-        self.surr           = surr
-        self.acqf           = acqf
-        self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
-        self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
-        self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
-        self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
-        self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
-        self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
-        self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
-        self.surr.verbose   = self.verbose
-        self.candidates     = None
+        if self.num_opt:
+            self.fix_candidates = False
+        else:
+            self.fix_candidates = kwargs.get('fix_candidates', True)
+
+        if 'n_candidates' in kwargs:
+            self.n_candidates = kwargs.get('n_candidates')
+        else:
+            self.n_candidates = 1 if self.num_opt else 101 ** 2
+
+        self.olhs         = kwargs.get('olhs', True)
+        self.lhs_seed     = kwargs.get('lhs_seed', None)
+        self.verbose      = kwargs.get('verbose', 1)
+        self.save_results = kwargs.get('save_results', True)
+        self.surr.verbose = self.verbose
+        self.candidates   = None
 
     def numerical_search(self):
         '''
