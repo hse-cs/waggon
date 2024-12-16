@@ -31,7 +31,7 @@ pip install -e
 
 (See more examples in the [documentation](https://hse-cs.github.io/waggon/).)
 
-The following code snippet (does this and that)
+The following code snippet is an example of surrogate optimisation.
 
 ```python
 import waggon
