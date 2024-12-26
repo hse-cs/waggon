@@ -1,7 +1,8 @@
 import numpy as np
 import jax.numpy as jnp
 from protes import protes
-from .base import Optimiser
+
+from ..base import Optimiser
 
 
 class ProtesOptimiser(Optimiser):
