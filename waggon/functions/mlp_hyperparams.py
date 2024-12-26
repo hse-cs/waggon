@@ -21,13 +21,16 @@ class MLP(nn.Module):
         self.hidden_layer1  = nn.Linear(search_space['hidden_size0'], search_space['hidden_size1'])
         self.output_layer   = nn.Linear(search_space['hidden_size1'], 3)
 
-        self.learning_rate = kwargs['learning_rate'] if 'learning_rate' in kwargs else 1e-2
-        self.criterion = kwargs['criterion'] if 'criterion' in kwargs else nn.CrossEntropyLoss()
-        self.optimiser = kwargs['optimiser'] if 'optimiser' in kwargs else torch.optim.Adam(self.parameters(),lr=self.learning_rate)
-        self.n_epochs = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
-        self.batch_size = kwargs['batch_size'] if 'batch_size' in kwargs else 128
+        self.learning_rate = kwargs.get('learning_rate', 1e-2)
+        self.criterion = kwargs.get('criterion', nn.CrossEntropyLoss())
+        self.optimiser = kwargs.get(
+            'optimiser', 
+            torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        )
+        self.n_epochs = kwargs.get('n_epochs', 100)
+        self.batch_size = kwargs.get('batch_size', 128)
 
-        self.score = kwargs['score'] if 'score' in kwargs else accuracy_score
+        self.score = kwargs.get('score', accuracy_score)
 
     def forward(self, x):
         x = F.relu(self.input_layer(x))
@@ -40,7 +43,6 @@ class MLP(nn.Module):
         dataset = TensorDataset(X_train, y_train)
 
         for _ in range(self.n_epochs):
-
             for X_batch, y_batch in DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=True):
             
                 y_pred = self(X_batch)
@@ -58,20 +60,19 @@ class MLP(nn.Module):
 
 class MLSolver(Function):
     def __init__(self, model, **kwargs):
-
-        self.dim           = kwargs['dim'] if 'dim' in kwargs else 2
-        self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([[1, 100], [1, 100]])
-        self.name          = 'NN hyperparams'
-        self.glob_min      = np.array([120, 45])
-        self.f             = lambda x: self.__call__(x)
-        self.log_transform = kwargs['log_transform'] if 'log_transform' in kwargs else True
-        self.log_eps       = kwargs['log_eps'] if 'log_eps' in kwargs else 1e-8
-        self.sigma         = kwargs['sigma'] if 'sigma' in kwargs else 1e-1
-        self.n_obs         = 13 * 3
-        self.model         = model
-        self.dataset       = kwargs['dataset'] if 'dataset' in kwargs else load_iris(return_X_y=True)
-        self.minimise      = kwargs['minimise'] if 'minimise' in kwargs else True
-        self.seed          = kwargs['seed'] if 'seed' in kwargs else 73
+        self.dim =           kwargs.get('dim', 2)
+        self.domain =        kwargs.get('domain', np.array([[1, 100], [1, 100]]))
+        self.name =          "NN hyperparams"
+        self.glob_min =      np.array([120, 45])
+        self.f =             lambda x: self.__call__(x)
+        self.log_transform = kwargs.get('log_transform', True)
+        self.log_eps =       kwargs.get('log_eps', 1e-8)
+        self.sigma =         kwargs.get('sigma', 1e-1)
+        self.n_obs =         13 * 3
+        self.model =         model
+        self.dataset =       kwargs.get('dataset', load_iris(return_X_y=True))
+        self.minimise =      kwargs.get('minimise', True)
+        self.seed =          kwargs.get('seed', 73)
 
         self.X = Variable(torch.from_numpy(self.dataset[0])).float()
         self.y = Variable(torch.from_numpy(self.dataset[1]))
