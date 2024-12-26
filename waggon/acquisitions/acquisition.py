@@ -5,87 +5,6 @@ from scipy.stats import norm, energy_distance as Wdist
 from .base import Acquisition
 
 
-class EI(Acquisition):
-    def __init__(self):
-        '''
-        Expected Improvement (EI) acquisition function.
-        '''
-        super(EI, self).__init__()
-        
-        self.name = 'EI'
-    
-    def __call__(self, x, **kwargs):
-        '''
-        Parameters
-        ----------
-        x : np.array of shape (n_samples * func.n_obs, func.dim)
-            Candidate points.
-        
-        kwargs : dict
-            Keyword arguments of the surrogate model.
-        
-        Returns
-        -------
-        EI : np.array of shape (n_samples, 1)
-            EI values. They are multiplied by -1.0 for optimisation perposes.
-        '''
-        mu, std = self.surr.predict(x, **kwargs)
-
-        z_ = np.min(self.y) - mu
-        z  = z_ / (std + 1e-8)
-        z_prob, z_dens = norm.cdf(z), norm.pdf(z)
-
-        EI = z_ * z_prob + std * z_dens
-
-        return -1.0 * EI
-
-
-class CB(Acquisition):
-    def __init__(self, kappa=2.0, minimise=True):
-        '''
-        Confidence Bound (CB) type acquisition function.
-
-        Parameters
-        ----------
-        kappa : float, default = 2.0
-            Exploration v. Exploitation coefficient.
-        
-        minimise : bool, default = True
-            Whether the objective is minimised or not.
-            If True, the acquisition function is Lower Confidence Bound (LCB).
-            If False, the acquisition function is Upper Confidence Bound (UCB).
-        '''
-        super(CB, self).__init__()
-
-        self.name     = 'LCB' if minimise else 'UCB'
-        self.kappa    = kappa
-        self.minimise = minimise
-    
-    def __call__(self, x, **kwargs):
-        '''
-        Parameters
-        ----------
-        x : np.array of shape (n_candidates * func.n_obs, func.dim)
-            Candidates points.
-        
-        kwargs : dict
-            Keyword arguments of the surrogate model.
-        
-        Returns
-        -------
-        regret : np.array of shape (n_candidates, 1)
-            CB values.
-        '''
-        mu, std = self.surr.predict(x, **kwargs)
-
-        if self.minimise:
-            regret = mu - self.kappa * std # LCB
-        else:
-            regret = mu + self.kappa * std # UCB
-        
-        return regret
-
-
 class WU(Acquisition):
     def __init__(self, kappa=2.0, minimise=True):
         '''
@@ -137,6 +56,187 @@ class WU(Acquisition):
             regret = mu + self.kappa * wu
         
         return regret
+
+
+class EI(Acquisition):
+    def __init__(self):
+        '''
+        Expected Improvement (EI) acquisition function.
+        '''
+        super(EI, self).__init__()
+        
+        self.name = 'EI'
+    
+    def __call__(self, x, **kwargs):
+        '''
+        Parameters
+        ----------
+        x : np.array of shape (n_samples * func.n_obs, func.dim)
+            Candidate points.
+        
+        kwargs : dict
+            Keyword arguments of the surrogate model.
+        
+        Returns
+        -------
+        EI : np.array of shape (n_samples, 1)
+            EI values. They are multiplied by -1.0 for optimisation perposes.
+        '''
+        mu, std = self.surr.predict(x, **kwargs)
+
+        z_ = np.min(self.y) - mu
+        z  = z_ / (std + 1e-8)
+        z_prob, z_dens = norm.cdf(z), norm.pdf(z)
+
+        EI = z_ * z_prob + std * z_dens
+
+        return -1.0 * EI
+
+
+class PI(Acquisition):
+    def __init__(self, xi=0.01, minimise=True):
+        """
+        Probability of Improvement (PI) acquisition function.
+
+        Parameters
+        ----------
+        xi : float, default=0.01
+            Exploration vs exploitation trade-off parameter.
+        
+        minimise : bool, default=True
+            Whether the objective is minimised or maximised.
+        """
+        super(PI, self).__init__()
+        self.name = 'PI'
+        self.xi = xi
+        self.minimise = minimise
+
+    def __call__(self, x, **kwargs):
+        """
+        Calculate the PI acquisition value for candidate points.
+
+        Parameters
+        ----------
+        x : np.array of shape (n_candidates, func.dim)
+            Candidate points.
+
+        Returns
+        -------
+        PI : np.array of shape (n_candidates,)
+            Probability of Improvement values.
+        """
+        mu, std = self.surr.predict(x, **kwargs)
+        best_y = np.min(self.y) if self.minimise else np.max(self.y)
+        z = (best_y - mu - self.xi) / (std + 1e-8)
+        pi = norm.cdf(z)
+        return pi
+
+
+class CB(Acquisition):
+    def __init__(self, kappa=2.0, minimise=True):
+        '''
+        Confidence Bound (CB) type acquisition function.
+
+        Parameters
+        ----------
+        kappa : float, default = 2.0
+            Exploration v. Exploitation coefficient.
+        
+        minimise : bool, default = True
+            Whether the objective is minimised or not.
+            If True, the acquisition function is Lower Confidence Bound (LCB).
+            If False, the acquisition function is Upper Confidence Bound (UCB).
+        '''
+        super(CB, self).__init__()
+
+        self.name     = 'LCB' if minimise else 'UCB'
+        self.kappa    = kappa
+        self.minimise = minimise
+    
+    def __call__(self, x, **kwargs):
+        '''
+        Parameters
+        ----------
+        x : np.array of shape (n_candidates * func.n_obs, func.dim)
+            Candidates points.
+        
+        kwargs : dict
+            Keyword arguments of the surrogate model.
+        
+        Returns
+        -------
+        regret : np.array of shape (n_candidates, 1)
+            CB values.
+        '''
+        mu, std = self.surr.predict(x, **kwargs)
+
+        if self.minimise:
+            regret = mu - self.kappa * std # LCB
+        else:
+            regret = mu + self.kappa * std # UCB
+        
+        return regret
+
+
+class ES(Acquisition):
+    def __init__(self):
+        """
+        Entropy Search (ES) acquisition function.
+        """
+        super(ES, self).__init__()
+        self.name = "EntropySearch"
+
+    def __call__(self, x, **kwargs):
+        """
+        Compute the reduction in entropy of the posterior over the location of the global minimum.
+
+        Parameters:
+        ----------
+        x : np.array of shape (n_samples, func.dim)
+            Candidate points.
+
+        Returns:
+        -------
+        es : np.array
+            The entropy reduction at each candidate point.
+        """
+        mu, std = self.surr.predict(x, **kwargs)
+        
+        p_min = norm.cdf((np.min(self.y) - mu) / (std + 1e-8))
+        entropy = p_min * np.log(p_min + 1e-8) + (1 - p_min) * np.log(1 - p_min + 1e-8)
+        
+        return entropy
+
+
+class KG(Acquisition):
+    def __init__(self):
+        """
+        Knowledge Gradient (KG) acquisition function.
+        """
+        super(KG, self).__init__()
+        self.name = "KnowledgeGradient"
+
+    def __call__(self, x, **kwargs):
+        """
+        Compute the Knowledge Gradient (KG) for candidate points.
+
+        Parameters:
+        ----------
+        x : np.array of shape (n_samples, func.dim)
+            Candidate points.
+
+        Returns:
+        -------
+        kg : np.array
+            KG values at the candidate points.
+        """
+        mu, std = self.surr.predict(x, **kwargs)
+        
+        delta = np.min(self.y) - mu
+        z = delta / (std + 1e-8)
+        kg = std * (z * norm.cdf(z) + norm.pdf(z))
+
+        return kg
 
 
 class WU_IDW(Acquisition):
