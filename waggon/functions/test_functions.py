@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 from .base import Function
 
 
@@ -153,3 +154,53 @@ class nonlinear_submanifold(submanifold):
         self.three_hump_camel = lambda x: 2 * x[:, 0]**2 - 1.05 * x[:, 0]**4 + x[:, 0]**6 / 6 + x[:, 0]*x[:, 1] + x[:, 1]**2
 
         self.f = lambda x: self.three_hump_camel(B @ self.non_lin_f(A @ x))
+
+
+class optimal_control(Function):
+    def __init__(self, T, dt=1.0, z0=0.8, z_ref=0.7, variance_range=(0.01, 0.1), n_obs=100):
+        super().__init__(dim=1, n_obs=n_obs, variance_range=variance_range)
+        self.T = T
+        self.dt = dt
+        self.z0 = z0
+        self.z_ref = z_ref
+        self.variance_range = variance_range  
+
+    def state_dynamics(self, z, x):
+        return z + self.dt * (z**3 - x)
+
+    def objective_function(self, z_trajectory):
+        return (1 / self.T) * np.sum((z_trajectory - self.z_ref) ** 2)
+
+    def __call__(self, x_sequence):
+        x_sequence = np.asarray(x_sequence).flatten()  
+        if len(x_sequence) != self.T:
+            raise ValueError(f"Expected x_sequence of length {self.T}, but got {len(x_sequence)}")
+
+        z_trajectory = np.zeros(self.T + 1)
+        z_trajectory[0] = self.z0
+        for t in range(self.T):
+            z_trajectory[t + 1] = self.state_dynamics(z_trajectory[t], x_sequence[t])
+        return self.objective_function(z_trajectory)
+
+    def sample(self, x):
+
+        x = np.asarray(x)
+        if x.ndim == 1:
+            x = x[:, None] 
+        if x.shape[0] != self.T:
+            raise ValueError(f"Expected x with shape ({self.T}, n), but got {x.shape}")
+
+        y = []
+        X = []
+        for t in range(self.T):
+            min_var, max_var = self.variance_range
+            variance = min_var + (max_var - min_var) * (np.sin(2 * np.pi * t / self.T) ** 2)
+            noise = np.random.normal(0, np.sqrt(variance), self.n_obs)
+
+            x_t = x[t, 0] * np.ones(self.n_obs)
+            y_t = self.__call__(x_t) + noise
+
+            X.append(x_t.reshape(-1, 1))
+            y.append(y_t.reshape(-1, 1))
+
+        return np.vstack(X), np.vstack(y)

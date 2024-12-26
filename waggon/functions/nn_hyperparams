@@ -56,12 +56,12 @@ class MLP(nn.Module):
         return self.score(y_test, np.argmax(pred, axis=1))
 
 
-class MLSolver(Function):
+class NNhyperparams(Function):
     def __init__(self, model, **kwargs):
 
         self.dim           = kwargs['dim'] if 'dim' in kwargs else 2
         self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([[1, 100], [1, 100]])
-        self.name          = 'NN hyperparams'
+        self.name          = 'NNhyperparams'
         self.glob_min      = np.array([120, 45])
         self.f             = lambda x: self.__call__(x)
         self.log_transform = kwargs['log_transform'] if 'log_transform' in kwargs else True
