@@ -7,7 +7,7 @@
 
 `WAGGON` is a python library of black box gradient-free optimisation. Currently, the library contains implementations of optimisation methods based on Wasserstein uncertainty and baseline approaches from the following papers:
 
-- Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. "Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space." Arxiv abs/2407.1117 (2024). [[arxiv]](https://arxiv.org/abs/2407.11917)
+- Tigran Ramazyan, Mikhail Hushchyn and Denis Derkach. Global Optimisation of Black-Box Functions with Generative Models in the Wasserstein Space, 2024.[[arxiv]](https://arxiv.org/abs/2407.11917) [[ECAI 2024 Proceedings]](https://ebooks.iospress.nl/doi/10.3233/FAIA240765)
 
 <!-- ![](https://github.com/hse-cs/waggon/blob/master/images/readme_image.png) -->
 
@@ -31,7 +31,7 @@ pip install -e
 
 (See more examples in the [documentation](https://hse-cs.github.io/waggon/).)
 
-The following code snippet (does this and that)
+The following code snippet is an example of surrogate optimisation.
 
 ```python
 import waggon
