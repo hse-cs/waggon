@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import TensorDataset, DataLoader
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris # change to MNIST?
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
