@@ -1,6 +1,6 @@
 from .base import Optimiser
-from .optim import SurrogateOptimiser
-from .evolutions import DifferentialEvolutionOptimizer
+from .surrogate import SurrogateOptimiser
+from .baselines.evolutions import DifferentialEvolutionOptimizer
 from .baselines.protes import ProtesOptimiser
 
 __all__ = [

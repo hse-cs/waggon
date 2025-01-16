@@ -5,8 +5,8 @@ import numpy as np
 
 from tqdm import tqdm
 
-from .base import Optimiser
-from .utils import create_dir
+from ..base import Optimiser
+from ..utils import create_dir
 
 
 class DifferentialEvolutionOptimizer(Optimiser):
@@ -23,7 +23,7 @@ class DifferentialEvolutionOptimizer(Optimiser):
         self.func         = func
         self.max_iter     = kwargs.get('max_iter', 1000)
         self.eps          = kwargs.get('eps', 1e-1)
-        self.error_type   = kwargs.get('error_type', 'x')
+        self.error_type   = kwargs.get('error_type', 'f')
         self.n_candidates = kwargs.get('n_candidates', 11 ** 2)
         self.olhs         = kwargs.get('olhs', True)
         self.lhs_seed     = kwargs.get('lhs_seed', None)

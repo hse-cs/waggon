@@ -68,11 +68,17 @@ class SurrogateOptimiser(Optimiser):
         self.acqf       = acqf
         self.max_iter   = kwargs.get('max_iter', 100)
         self.eps        = kwargs.get('eps', 1e-1)
-        self.error_type = kwargs.get('error_type', 'x')
+        self.error_type = kwargs.get('error_type', 'f')
         self.num_opt    = kwargs.get('num_opt', False)
         self.eq_cons    = kwargs.get('eq_cons', None)
         self.ineq_cons  = kwargs.get('ineq_cons', None)
-        
+        self.olhs         = kwargs.get('olhs', True)
+        self.lhs_seed     = kwargs.get('lhs_seed', None)
+        self.verbose      = kwargs.get('verbose', 1)
+        self.save_results = kwargs.get('save_results', True)
+        self.surr.verbose = self.verbose
+        self.candidates   = None
+
         if self.num_opt:
             self.fix_candidates = False
         else:
@@ -82,13 +88,6 @@ class SurrogateOptimiser(Optimiser):
             self.n_candidates = kwargs.get('n_candidates')
         else:
             self.n_candidates = 1 if self.num_opt else 101 ** 2
-
-        self.olhs         = kwargs.get('olhs', True)
-        self.lhs_seed     = kwargs.get('lhs_seed', None)
-        self.verbose      = kwargs.get('verbose', 1)
-        self.save_results = kwargs.get('save_results', True)
-        self.surr.verbose = self.verbose
-        self.candidates   = None
 
     def numerical_search(self):
         '''

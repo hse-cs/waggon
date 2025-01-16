@@ -23,6 +23,9 @@ class GP(Surrogate):
 
     def predict(self, X):
 
+        if len(X.shape) == 1:
+            X = X.reshape(1, -1)
+
         f, var = self.model.predict(X)
         std = np.sqrt(var)
 
