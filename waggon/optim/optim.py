@@ -80,6 +80,7 @@ class SurrogateOptimiser(Optimiser):
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.surr.verbose   = self.verbose
         self.candidates     = None
+        self.candidate_type = kwargs['candidate_type'] if 'candidate_type' in kwargs else np.float32
 
     def numerical_search(self):
         '''
@@ -173,5 +174,5 @@ class SurrogateOptimiser(Optimiser):
     def _save(self, base_dir='test_results'):
         res_path = create_dir(self.func, self.acqf.name, self.surr.name, base_dir=base_dir)
 
-        with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+        with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)

@@ -55,6 +55,8 @@ class BNN(Surrogate):# TODO: add cuda
         
         X = Tensor(X)
         y = Tensor(y)
+        print(X.shape)
+        print(y.shape)
         X_train = TensorDataset(X, y)
 
         fit_loop = range(self.n_epochs)
@@ -65,6 +67,7 @@ class BNN(Surrogate):# TODO: add cuda
             for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):
                 
                 y_pred   = self.model(X_batch)
+                print(X_batch.shape, y_pred.shape, y_batch.shape)
                 mse_loss = self.mse_loss(y_pred, y_batch)
                 kl_loss  = self.kl_loss(self.model)
                 loss     = mse_loss + self.kl_weight * kl_loss

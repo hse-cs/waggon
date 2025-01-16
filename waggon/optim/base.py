@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
 
+# from .base import Optimiser
 from .utils import _get_olhs_num
 from ..functions import Function
 
@@ -67,6 +68,7 @@ class Optimiser(object):
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.surr.verbose   = self.verbose
         self.candidates     = None
+        self.candidate_type = kwargs['candidate_type'] if 'candidate_type' in kwargs else np.float32
     
     def create_candidates(self, N=None):
         '''
@@ -96,7 +98,7 @@ class Optimiser(object):
         lhs_       = qmc.LatinHypercube(d=self.func.domain.shape[0], scramble=True, strength=strength, seed=self.lhs_seed)
         candidates = lhs_.random(N)
         candidates = qmc.scale(candidates, self.func.domain[:, 0], self.func.domain[:, 1])
-        return candidates
+        return candidates.astype(self.candidate_type)
     
     def predict(self):
         pass
@@ -124,7 +126,7 @@ class Optimiser(object):
             self.res = np.array([[np.min(self.func(X))]])
             self.params = np.array([X[np.argmin(self.func(X)), :]])
         else:
-            self.res = np.array([np.min(y)])
+            self.res = np.array([[np.min(y)]])
             self.params = np.array([X[np.argmin(y), :]])
 
         if self.verbose == 0:
@@ -174,5 +176,5 @@ class Optimiser(object):
         if not os.path.isdir(base_dir):
             os.mkdir(base_dir)
 
-        with open(f'{base_dir}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+        with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
