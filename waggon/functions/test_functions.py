@@ -27,7 +27,16 @@ class rosenbrock(Function):
         self.domain   = np.array([self.dim*[-2, 2]]).reshape(self.dim, 2)
         self.name     = f'Rosenbrock ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim)
-        self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0).squeeze()
+    
+    def __call__(self, x):
+        y = np.stack(
+            [
+                100 * (x[..., i+1] - x[..., i] ** 2) ** 2 + (1 - x[..., i]) ** 2
+                for i in range(self.dim - 1)
+            ],
+            axis=-1
+        )
+        return np.sum(y, axis=-1, keepdims=True)
 
 
 class tang(Function):
