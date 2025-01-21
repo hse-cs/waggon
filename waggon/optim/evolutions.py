@@ -1,5 +1,6 @@
 import time
 import pickle
+import os
 
 import numpy as np
 
@@ -35,10 +36,16 @@ class DifferentialEvolutionOptimizer(Optimiser):
         self.mutation_rate  = kwargs.get('mutation_rate', 1.0)
         self.crossover_rate = kwargs.get('crossover_rate', 0.5)
 
-        # Experiments parameters
+        # Experiments results
         self.errors = None
         self.res = None
         self.params = None
+
+        # Save experiments
+        self.save_results = kwargs.get('save_results', True)
+        self.path = kwargs.get('path', 'test_results')
+        self.filename = kwargs.get('filename', time.strftime("%d.%m-%H:%M:%S"))
+
 
     def predict(self, X=None, y=None) -> np.ndarray:
         """
@@ -55,6 +62,7 @@ class DifferentialEvolutionOptimizer(Optimiser):
         -------
         x_next: np.ndarray shape of [dim, ]
         """
+
         self.evolution_step()
         y_func = self.func(self.candidates).flatten() # shape of [n_candidates]
         return self.candidates[np.argmin(y_func)]
@@ -124,8 +132,11 @@ class DifferentialEvolutionOptimizer(Optimiser):
                 error = error
             )
 
+            if self.verbose > 0:
+                opt_loop.set_description(f"Optimization error: {error:.4f}")
+
             if error <= self.eps:
-                print(f'Experiment finished successfully')
+                print('Experiment finished successfully')
                 break
         
         if error > self.eps:
@@ -196,3 +207,10 @@ class DifferentialEvolutionOptimizer(Optimiser):
         self.res = np.concatenate((
             self.res, np.expand_dims([y_best], 0)
         ))
+    
+    def _save(self, base_dir=None):
+        if not os.path.isdir(self.path):
+            os.mkdir(self.path)
+
+        with open(f'{self.path}/{self.filename}.pkl', 'wb') as file:
+            pickle.dump(self.errors, file)
