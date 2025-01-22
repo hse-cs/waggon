@@ -46,7 +46,8 @@ class Function:
         self.log_transform = kwargs.get('log_transform', True)
         self.log_eps       = kwargs.get('log_eps', 1e-8)
         self.sigma         = kwargs.get('sigma', 1e-1)
-        self.n_obs         = kwargs.get('n_obs', 1)
+        self.n_obs         = kwargs['n_obs'] if 'n_obs' in kwargs else 10
+        # kwargs.get('n_obs', 1)
     
     def __call__(self, x):
         '''
@@ -85,14 +86,8 @@ class Function:
             Target values of the black-box function.
         '''
 
-        n_samples, _ = x.shape
-        n_obs = self.n_obs
-
-        input_dim = self.dim
-        output_dim = 1     
-
-        X = np.expand_dims(x, axis=1) * np.ones((1, n_obs, 1))
-        X = X.reshape(-1, input_dim)
+        X = np.expand_dims(x, axis=1) * np.ones((1, self.n_obs, 1))
+        X = X.reshape(-1, self.dim)
 
         mu = self.__call__(X) # shape of [n_samples * n_obs, output_dim]
         y = np.random.normal(mu, self.sigma)

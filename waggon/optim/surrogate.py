@@ -161,7 +161,6 @@ class SurrogateOptimiser(Optimiser):
         -------
         next_x : np.array of shape (func.dim, n_pred)
         '''
-
         self.surr.fit(X, y)
             
         self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)

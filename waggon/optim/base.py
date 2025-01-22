@@ -132,7 +132,7 @@ class Optimiser(object):
         else:
             opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop started...', leave=True, position=0)
 
-        for i in opt_loop:
+        for _ in opt_loop:
 
             next_x = self.predict(X, y)
             next_f = np.array([self.func(next_x)])
