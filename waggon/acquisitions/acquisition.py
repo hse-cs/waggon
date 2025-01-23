@@ -82,7 +82,14 @@ class EI(Acquisition):
         EI : np.array of shape (n_samples, 1)
             EI values. They are multiplied by -1.0 for optimisation perposes.
         '''
+        if len(x.shape) == 1:
+            x = x.reshape(1, -1)
+
         mu, std = self.surr.predict(x, **kwargs)
+
+        if len(mu) > 1:
+            mu = mu[0]
+            std = std[0]
 
         z_ = np.min(self.y) - mu
         z  = z_ / (std + 1e-8)

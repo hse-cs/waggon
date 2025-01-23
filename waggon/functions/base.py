@@ -46,8 +46,7 @@ class Function:
         self.log_transform = kwargs.get('log_transform', True)
         self.log_eps       = kwargs.get('log_eps', 1e-8)
         self.sigma         = kwargs.get('sigma', 1e-1)
-        self.n_obs         = kwargs['n_obs'] if 'n_obs' in kwargs else 10
-        # kwargs.get('n_obs', 1)
+        self.n_obs         = kwargs.get('n_obs', 10)
     
     def __call__(self, x):
         '''

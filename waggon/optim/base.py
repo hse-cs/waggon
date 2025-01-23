@@ -2,8 +2,8 @@ import os
 import time
 import pickle
 import numpy as np
-from tqdm import tqdm
 from scipy.stats import qmc
+from tqdm.notebook import tqdm
 
 from .utils import _get_olhs_num
 from ..functions import Function

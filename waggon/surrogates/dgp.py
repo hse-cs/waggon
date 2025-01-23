@@ -21,7 +21,7 @@ import numpy as np
 class ToyDeepGPHiddenLayer(DeepGPLayer):
     # Наследуется от базового класса скрытых слоев DeepGPLayer.
 
-    def __init__(self, input_dims, output_dims=100, num_inducing=32, mean_type='constant'):
+    def __init__(self, input_dims, output_dims=100, num_inducing=32):
         if output_dims is None:
             inducing_points = torch.randn(num_inducing, input_dims)
             batch_shape = torch.Size([])
@@ -43,10 +43,7 @@ class ToyDeepGPHiddenLayer(DeepGPLayer):
 
         super(ToyDeepGPHiddenLayer, self).__init__(variational_strategy, input_dims, output_dims)
 
-        if mean_type == 'constant':
-            self.mean_module = ConstantMean(batch_shape=batch_shape)
-        else:
-            self.mean_module = LinearMean(input_dims)
+        self.mean_module = LinearMean(input_dims)
         self.covar_module = ScaleKernel(
             RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims),
             batch_shape=batch_shape, ard_num_dims=None
@@ -83,7 +80,7 @@ num_hidden_dims = 2
 
 class DGP(DeepGP):
     # Модуль наследуется от DeepGP - контейнера. Он в свою очередь (в итоге) наследуется от nn.Module - базового класса Pytorch для нейронных сетей.
-    def __init__(self, input_dim, out_dim, num_samples=1, epochs=1500):
+    def __init__(self, input_dim, out_dim, num_samples=1, n_epochs=100, **kwargs):
         hidden_layer = ToyDeepGPHiddenLayer(
             input_dims=input_dim,
             output_dims=out_dim,
@@ -101,8 +98,10 @@ class DGP(DeepGP):
         self.hidden_layer = hidden_layer
         self.last_layer = last_layer
         self.likelihood = GaussianLikelihood()
-        self.epochs = epochs
+        self.epochs = n_epochs
         self.num_samples=num_samples
+        self.verbose = kwargs.get('verbose', 2)
+        self.lr = kwargs.get('lr', 1e-3)
 
     def forward(self, inputs):
         # Классическое прохождение входящих переменных через слои сети
@@ -122,11 +121,11 @@ class DGP(DeepGP):
 
       optimizer = torch.optim.Adam([
           {'params': self.parameters()},
-      ], lr=0.01)
+      ], lr=self.lr)
       mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 10))
 
-      epochs_iter = tqdm.notebook.tqdm(range(num_epochs), desc="Epoch")
-      minibatch_iter = tqdm.notebook.tqdm(train_loader, desc="Minibatch", leave=False)
+      epochs_iter = tqdm.notebook.tqdm(range(num_epochs), desc="Epoch") if self.verbose >= 2 else range(num_epochs)
+      minibatch_iter = tqdm.notebook.tqdm(train_loader, desc="Minibatch", leave=False)if self.verbose >= 3 else train_loader
       for i in epochs_iter:
         for x_batch, y_batch in minibatch_iter:
             with gpytorch.settings.num_likelihood_samples(num_samples):
@@ -145,7 +144,7 @@ class DGP(DeepGP):
           mus = []
           variances = []
 
-          preds = self(x).detach()
+          preds = self(x)
           #preds = self.likelihood(self(x)) # uncomment to get likelihoods of predictions
           mus.append(preds.mean.detach())
           variances.append(preds.variance.detach())

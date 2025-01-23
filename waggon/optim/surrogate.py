@@ -67,7 +67,7 @@ class SurrogateOptimiser(Optimiser):
         self.surr       = surr
         self.acqf       = acqf
         self.max_iter   = kwargs.get('max_iter', 100)
-        self.eps        = kwargs.get('eps', 1e-1)
+        self.eps        = kwargs.get('eps', 1e-2)
         self.error_type = kwargs.get('error_type', 'f')
         self.num_opt    = kwargs.get('num_opt', False)
         self.eq_cons    = kwargs.get('eq_cons', None)
