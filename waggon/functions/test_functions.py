@@ -6,8 +6,8 @@ class three_hump_camel(Function):
     '''
     Three Hump Camel function.
     '''
-    def __init__(self):
-        super(three_hump_camel, self).__init__()
+    def __init__(self, **kwargs):
+        super(three_hump_camel, self).__init__(**kwargs)
         
         self.dim      = 2
         self.domain   = np.array([[-5, 5], [-5, 5]])
@@ -20,8 +20,8 @@ class rosenbrock(Function):
     '''
     d-dimensional Rosenbrock function.
     '''
-    def __init__(self, dim=20):
-        super(rosenbrock, self).__init__()
+    def __init__(self, dim=20, **kwargs):
+        super(rosenbrock, self).__init__(**kwargs)
 
         self.dim      = dim
         self.domain   = np.array([self.dim*[-2, 2]]).reshape(self.dim, 2)
@@ -34,8 +34,8 @@ class tang(Function):
     '''
     d-dimensional Styblinsky-Tang function.
     '''
-    def __init__(self, dim=20):
-        super(tang, self).__init__()
+    def __init__(self, dim=20, **kwargs):
+        super(tang, self).__init__(**kwargs)
 
         self.dim      = dim
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
@@ -48,8 +48,8 @@ class ackley(Function):
     '''
     Ackley function.
     '''
-    def __init__(self):
-        super(ackley, self).__init__()
+    def __init__(self, **kwargs):
+        super(ackley, self).__init__(**kwargs)
 
         self.dim      = 2
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
@@ -62,8 +62,8 @@ class levi(Function):
     '''
     Lévi function.
     '''
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super(levi, self).__init__(**kwargs)
 
         self.dim      = 2
         self.domain   = np.array([self.dim*[-4, 6]]).reshape(self.dim, 2)
@@ -96,8 +96,8 @@ class himmelblau(Function):
     '''
     Himmelblau function.
     '''
-    def __init__(self):
-        super(himmelblau, self).__init__()
+    def __init__(self, **kwargs):
+        super(himmelblau, self).__init__(**kwargs)
 
         self.dim      = 2
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
@@ -110,8 +110,8 @@ class holder(Function):
     '''
     Hölder function.
     '''
-    def __init__(self):
-        super(holder, self).__init__()
+    def __init__(self, **kwargs):
+        super(holder, self).__init__(**kwargs)
 
         self.dim      = 2
         self.domain   = np.array([self.dim*[-10, 10]]).reshape(self.dim, 2)
