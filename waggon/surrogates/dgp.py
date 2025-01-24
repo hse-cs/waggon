@@ -10,23 +10,16 @@ class DGP(Surrogate):
         self.model       = kwargs['model'] if 'model' in kwargs else None
         self.hidden_size = kwargs['hidden_size'] if 'hidden_size' in kwargs else 64
         self.n_epochs    = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
-        self.lr          = kwargs['G_lr'] if 'G_lr' in kwargs else 1e-3
+        self.lr          = kwargs['lr'] if 'lr' in kwargs else 1e-3
         self.batch_size  = kwargs['batch_size'] if 'batch_size' in kwargs else 16
-        self.n_preds     = kwargs['n_preds'] if 'n_preds' in kwargs else 10
         self.verbose     = kwargs['verbose'] if 'verbose' in kwargs else 1
-
-        self.save_loss   = kwargs['save_loss'] if 'save_loss' in kwargs else False
-        # self.mse_loss    = nn.MSELoss()
-        # self.kl_loss     = bnn.BKLLoss(reduction='mean', last_layer_only=False)
-        self.kl_weight   = kwargs['kl_weight'] if 'kl_weight' in kwargs else 1e-2
-
-        if self.save_loss:
-            self.loss_hist = []
     
     def fit(self, X, y):
 
         if self.model is None:
-            self.model = DistributionalDGP(X.shape[-1], y.shape[-1], n_epochs=self.n_epochs)
+            self.model = DistributionalDGP(X.shape[-1], y.shape[-1],
+                                           n_epochs=self.n_epochs, hidden_size=self.hidden_size,
+                                           lr = self.lr, batch_size=self.batch_size, verbose=self.verbose)
         
         self.model.fit(X, y)
     
@@ -34,6 +27,7 @@ class DGP(Surrogate):
 
         f, std = self.model.predict(torch.tensor(X))
         return f, np.sqrt(std)
+
 
 import torch
 from torch.utils.data import TensorDataset, DataLoader
@@ -179,7 +173,7 @@ class DistributionalDGP(DeepGP):
         super().__init__()
         hidden_layer = ToyDeepGPHiddenLayer2(
             input_dims=input_dim,
-            output_dims=16,
+            output_dims=kwargs.get('hidden_size', 16),
             mean_type='linear',
         )
 
@@ -192,25 +186,27 @@ class DistributionalDGP(DeepGP):
         self.hidden_layer = hidden_layer
         self.last_layer = last_layer
         self.likelihood = GaussianLikelihood()
-        self.epochs = kwargs.get('n_epochs', 100)
+        self.n_epochs = kwargs.get('n_epochs', 100)
         self.num_samples = kwargs.get('num_samples', 100)
+        self.lr = kwargs.get('lr', 1e-3)
+        self.batch_size = kwargs.get('batch_size', 8)
+        self.verbose = kwargs.get('verbose', 1)
 
     def fit(self, X, y):
-
-      num_epochs = self.epochs
+      
       self.loss_history = []
       self.predictions_history = []
 
-      optimizer = torch.optim.Adam([{'params': self.parameters()},], lr=1e-3)
+      optimizer = torch.optim.Adam([{'params': self.parameters()},], lr=self.lr)
       mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 500))
 
 
-      epochs_iter = tqdm.notebook.tqdm(range(num_epochs), desc="Epoch")
+      epochs_iter = tqdm.notebook.tqdm(range(self.n_epochs), desc="Epoch") if self.verbose > 1 else range(self.n_epochs)
 
       for _ in epochs_iter:
         closs = 0
         with gpytorch.settings.num_likelihood_samples(self.num_samples):
-            for x_batch, y_batch in DataLoader(TensorDataset(torch.tensor(X), torch.tensor(y)), batch_size=8, shuffle=True):
+            for x_batch, y_batch in DataLoader(TensorDataset(torch.tensor(X), torch.tensor(y)), batch_size=self.batch_size, shuffle=True):
                 output = self(x_batch)
                 loss = -mll(output, y_batch)
                 loss.backward(retain_graph=True)
@@ -218,7 +214,9 @@ class DistributionalDGP(DeepGP):
                 optimizer.step()
 
                 optimizer.zero_grad()
-        epochs_iter.set_description(f"Loss: {closs:.3f}")
+        
+        if self.verbose > 1:
+            epochs_iter.set_description(f"Loss: {closs:.3f}")
         self.loss_history.append(loss)
 
         # with torch.no_grad():
