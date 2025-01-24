@@ -173,5 +173,5 @@ class SurrogateOptimiser(Optimiser):
     def _save(self, base_dir='test_results'):
         res_path = create_dir(self.func, self.acqf.name, self.surr.name, base_dir=base_dir)
 
-        with open(f'{res_path}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+        with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)

@@ -174,5 +174,5 @@ class Optimiser(object):
         if not os.path.isdir(base_dir):
             os.mkdir(base_dir)
 
-        with open(f'{base_dir}/{time.strftime("%d.%m-%H:%M:%S")}.pkl', 'wb') as f:
+        with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
