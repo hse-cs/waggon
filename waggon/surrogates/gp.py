@@ -13,20 +13,15 @@ class GP(Surrogate):
         self.verbose  = kwargs['verbose'] if 'verbose' in kwargs else 1
     
     def fit(self, X, y):
-        flag = True
+
         if self.model is None:
             self.model = GPy.models.GPRegression(X, y)
-            flag = False
         
-        if flag:
-            self.model.set_XY(X=X, Y=y)
+        self.model.set_XY(X=X, Y=y)
         
         self.model.optimize(max_iters=self.n_epochs, messages=True if self.verbose > 1 else False)
 
     def predict(self, X):
-
-        if len(X.shape) == 1:
-            X = X.reshape(1, -1)
 
         f, var = self.model.predict(X)
         std = np.sqrt(var)

@@ -29,19 +29,19 @@ class BNN(Surrogate):# TODO: add cuda
     def __init__(self, **kwargs):
         super(BNN, self).__init__()
 
-        self.name        = "BNN"
-        self.model       = kwargs.get('model', None)
-        self.hidden_size = kwargs.get('hidden_size', 64)
-        self.n_epochs    = kwargs.get('n_epochs', 100)
-        self.lr          = kwargs.get('G_lr', 1e-3)
-        self.batch_size  = kwargs.get('batch_size', 16)
-        self.n_preds     = kwargs.get('n_preds', 10)
-        self.verbose     = kwargs.get('verbose', 1)
+        self.name        = 'BNN'
+        self.model       = kwargs['model'] if 'model' in kwargs else None
+        self.hidden_size = kwargs['hidden_size'] if 'hidden_size' in kwargs else 64
+        self.n_epochs    = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
+        self.lr          = kwargs['G_lr'] if 'G_lr' in kwargs else 1e-3
+        self.batch_size  = kwargs['batch_size'] if 'batch_size' in kwargs else 16
+        self.n_preds     = kwargs['n_preds'] if 'n_preds' in kwargs else 10
+        self.verbose     = kwargs['verbose'] if 'verbose' in kwargs else 1
 
-        self.save_loss = kwargs.get('save_loss', False)
-        self.mse_loss  = nn.MSELoss()
-        self.kl_loss   = bnn.BKLLoss(reduction='mean', last_layer_only=False)
-        self.kl_weight = kwargs.get('kl_weight', 1e-2)
+        self.save_loss   = kwargs['save_loss'] if 'save_loss' in kwargs else False
+        self.mse_loss    = nn.MSELoss()
+        self.kl_loss     = bnn.BKLLoss(reduction='mean', last_layer_only=False)
+        self.kl_weight   = kwargs['kl_weight'] if 'kl_weight' in kwargs else 1e-2
 
         if self.save_loss:
             self.loss_hist = []
