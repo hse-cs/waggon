@@ -134,8 +134,8 @@ class Optimiser(object):
 
         for i in opt_loop:
 
-            next_x = self.predict(X, y)
-            next_f = np.array([self.func(next_x)])
+            next_x = self.predict(X.astype(np.float32), y.astype(np.float32)).astype(np.float32)
+            next_f = np.array([self.func(next_x)]).astype(np.float32)
 
             if next_f <= self.res[-1, :]:
                 self.res = np.concatenate((self.res, next_f.reshape(1, -1)))
