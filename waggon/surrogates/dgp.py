@@ -31,7 +31,6 @@ class DGP(Surrogate):
 
 import torch
 from torch.utils.data import TensorDataset, DataLoader
-from tqdm.notebook import tqdm
 # from wgpot import Wasserstein_GP
 import tqdm
 import gpytorch
@@ -201,7 +200,7 @@ class DistributionalDGP(DeepGP):
       mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 500))
 
 
-      epochs_iter = tqdm.notebook.tqdm(range(self.n_epochs), desc="Epoch") if self.verbose > 1 else range(self.n_epochs)
+      epochs_iter = tqdm(range(self.n_epochs), desc="Epoch") if self.verbose > 1 else range(self.n_epochs)
 
       for _ in epochs_iter:
         closs = 0
@@ -300,7 +299,7 @@ class WassersteinDGP(DistributionalDGP):
       mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 10))
 
 
-      epochs_iter = tqdm.notebook.tqdm(range(num_epochs), desc="Epoch")
+      epochs_iter = tqdm(range(num_epochs), desc="Epoch")
 
       for _ in epochs_iter:
         with gpytorch.settings.num_likelihood_samples(self.num_samples):
