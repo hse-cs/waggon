@@ -32,7 +32,7 @@ class DGP(Surrogate):
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 # from wgpot import Wasserstein_GP
-import tqdm
+from tqdm import tqdm
 import gpytorch
 from gpytorch.means import ConstantMean, LinearMean
 from gpytorch.kernels import RBFKernel, ScaleKernel

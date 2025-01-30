@@ -154,3 +154,11 @@ def plot_results(base_dir='test_results', figsize=(16, 8), **kwargs):
         os.mkdir('plots')
 
     fig.savefig('plots/res.jpeg', format='jpeg', dpi=200, bbox_inches='tight')
+
+
+# x = np.linspace(-5, 5, 100)
+# y = np.linspace(-5, 5, 100)
+
+# X,Y = np.meshgrid(x, y)
+# data = np.vstack([X.ravel(), Y.ravel()])
+# plt.contourf(X, Y, d(data.T).reshape(100, 100))
