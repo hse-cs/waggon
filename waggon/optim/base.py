@@ -85,7 +85,7 @@ class Optimiser(object):
         '''
         
         N = self.n_candidates if N is None else N
-        N = _get_olhs_num(self.func.dim)[0] if N == -1 else N
+        N = _get_olhs_num(self.func.dim**2 - 1)[0] if N == -1 else N
 
         if self.olhs:
             N = max(N, _get_olhs_num(self.func.dim)[0])
