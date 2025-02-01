@@ -48,14 +48,14 @@ class ackley(Function):
     '''
     Ackley function.
     '''
-    def __init__(self, **kwargs):
+    def __init__(self, dim=2, **kwargs):
         super(ackley, self).__init__(**kwargs)
 
-        self.dim      = 2
+        self.dim      = dim
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = 'Ackley'
         self.glob_min = np.zeros(self.dim).reshape(1, -1)
-        self.f        = lambda x: -20 * np.exp(-0.2*np.sqrt(0.5*(x[:, 0]**2 + x[:, 1]**2))) -  np.exp(0.5*(np.cos(2*np.pi**x[:, 0]) + np.cos(2*np.pi*x[:, 1]))) + np.e + 20
+        self.f        = lambda x: -20 * np.exp(-0.2*np.sqrt((1./self.dim) * (np.sum(x**2, axis=1)))) -  np.exp((1./self.dim) * (np.sum(np.cos(2*np.pi*x), axis=1))) + np.e + 20
 
 
 class levi(Function):
