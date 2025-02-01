@@ -166,7 +166,7 @@ class DistributionalDGP(DeepGP):
       return self.loss_history
 
     def forward(self, x):
-        with gpytorch.settings.num_likelihood_samples(self.num_samples):
+        with gpytorch.settings.num_likelihood_samples(1):
             hidden_rep1 = self.hidden_layer(x)
             output = self.last_layer(hidden_rep1)
         # mean_x = self.mean_module(output)
