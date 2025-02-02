@@ -1,6 +1,11 @@
 from .base import Surrogate
 
 import numpy as np
+import torch
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.set_default_device(DEVICE)
+
 
 class DGP(Surrogate):
     def __init__(self, **kwargs):
@@ -147,8 +152,10 @@ class DistributionalDGP(DeepGP):
       for _ in epochs_iter:
         closs = 0
         with gpytorch.settings.num_likelihood_samples(self.num_samples):
-            for x_batch, y_batch in DataLoader(TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)), batch_size=self.batch_size, shuffle=True):
-                # print("Fit in class Distributional GP x_batch: ", x_batch.dtype)  
+            generator = torch.Generator(device=DEVICE)
+            dataset  = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32))
+            dataloader = DataLoader(dataset, batch_size=self.batch_size, generator=generator, shuffle=True)
+            for x_batch, y_batch in dataloader: 
                 output = self(x_batch)
                 loss = -mll(output, y_batch)
                 loss.backward(retain_graph=True)
@@ -185,7 +192,7 @@ class DistributionalDGP(DeepGP):
             variances.append(preds.variance)
             # lls.append(self.likelihood.log_marginal(y, self(x)))
 
-        return torch.cat(mus, dim=-1), torch.cat(variances, dim=-1)
+        return torch.cat(mus, dim=-1).cpu(), torch.cat(variances, dim=-1).cpu()
     
     def __call__(self, x, *other_inputs, **kwargs):
         """
