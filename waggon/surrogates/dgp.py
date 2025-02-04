@@ -143,7 +143,7 @@ class DistributionalDGP(DeepGP):
       self.predictions_history = []
 
       optimizer = torch.optim.Adam([{'params': self.parameters()},], lr=self.lr)
-      mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, 500))
+      mll = DeepApproximateMLL(VariationalELBO(self.likelihood, self, self.num_samples))
 
 
       epochs_iter = tqdm(range(self.n_epochs), desc="Epoch") if self.verbose > 1 else range(self.n_epochs)
