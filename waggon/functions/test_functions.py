@@ -144,14 +144,11 @@ class submanifold_rosenbrock(Function):
         Q, _ = np.linalg.qr(A)
         b = np.ones(sub_dim)
 
-        print(Q.shape)
-        print(b.shape)
-
         x_min, _, _, _ = scipy.linalg.lstsq(Q.T, b)
 
-        self.glob_min = np.expand_dims(x_min, -1)
+        self.glob_min = np.expand_dims(x_min, 0)
         self.Q = Q
         self.f = lambda x: np.sum(
-            100 * (x @ self.Q[:, 1:] - (x @ self.Q[:, :-1])**2)**2 + (1 - (x @ self.Q[:, :-1])**2),
+            100 * (x @ self.Q[:, 1:] - (x @ self.Q[:, :-1])**2)**2 + (1 - (x @ self.Q[:, :-1])) ** 2,
             axis=-1
         )

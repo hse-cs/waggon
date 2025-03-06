@@ -18,10 +18,6 @@ class SubmanifoldRosenbrock(FunctionV2):
 
         b = np.ones(sub_dim)
 
-        print(Q.shape)
-        print(b.shape)
-        print()
-
         x_min, _, _, _ = scipy.linalg.lstsq(Q.T, b)
         self.glob_min = np.expand_dims(x_min, 0)
 
