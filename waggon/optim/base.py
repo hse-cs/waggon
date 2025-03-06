@@ -4,6 +4,8 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
+import matplotlib.pyplot as plt
+from matplotlib import cm, ticker
 
 from .utils import _get_olhs_num
 from ..functions import Function
@@ -65,7 +67,7 @@ class Optimiser(object):
         self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
-        self.surr.verbose   = self.verbose
+        self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
         self.candidates     = None
     
     def create_candidates(self, N=None):
@@ -132,7 +134,7 @@ class Optimiser(object):
         else:
             opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop started...', leave=True, position=0)
 
-        for i in opt_loop:
+        for _ in opt_loop:
 
             next_x = self.predict(X, y)
             next_f = np.array([self.func(next_x)])
@@ -159,8 +161,11 @@ class Optimiser(object):
             if self.verbose > 0:
                 opt_loop.set_description(f"Optimisation error: {error:.4f}")
             
+            if self.plot_results:
+                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
+            
             if error <= self.eps:
-                print('Experiment finished successfully')
+                print('Experiment finished successfully!')
                 break
         
         if error > self.eps:
@@ -176,3 +181,51 @@ class Optimiser(object):
 
         with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
+    
+    def plot_iteration_results(self, X, next_x):
+        '''
+        For surrogate optimiser only.
+        '''
+        if self.func.dim == 1:
+            inter_conds = np.linspace(self.func.domain[:, 0], self.func.domain[:, 1], 121)
+        else:
+            inter_conds = self.create_candidates(N=10201)
+        
+        mu, std = self.surr.predict(inter_conds)
+        mu = mu.numpy()
+        y_true = self.func(inter_conds)
+        
+        if self.func.dim == 1:
+            plt.plot(inter_conds, mu, label=f'Pred: {np.mean((y_true - mu)**2):.2f}', c='cornflowerblue')
+            plt.plot(inter_conds, y_true, label='True', c='orange')
+            # plt.scatter(X, y, c='black')
+            plt.legend()
+        else:
+            
+            y_true, mu = y_true.reshape(101, 101), mu.reshape(101, 101)
+            mse = (y_true - mu)**2
+
+            ei = self.acqf(inter_conds).numpy().reshape(101, 101)
+            x_pred = inter_conds[np.argmin(ei)]
+            
+            def single_2d_plot(axis, f, title):
+                plt.subplot(axis)
+                colormap = plt.contourf(f, locator=ticker.LinearLocator(), extent=self.func.domain.flatten(), vmin=np.min(f), vmax=np.max(f))
+                plt.scatter(X[:, 0], X[:, 1], color='black')
+                for gb in self.func.glob_min:
+                    plt.scatter(gb[0], gb[1], color='red', marker='*')
+                plt.scatter(x_pred[0], x_pred[1], color='cyan', marker='*')
+                plt.scatter(next_x[0], next_x[1], color='magenta', marker='*')
+                plt.title(title)
+                plt.colorbar(colormap)
+            
+            plt.figure(figsize=(24, 6))
+
+            single_2d_plot(141, y_true, 'True Function')
+            single_2d_plot(142, mu, 'Estimated Function')
+            single_2d_plot(143, mse, 'MSE')
+            single_2d_plot(144, ei, 'EI')
+            
+            plt.tight_layout()
+        
+        plt.show()
