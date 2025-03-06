@@ -61,23 +61,15 @@ class SurrogateOptimiser(Optimiser):
         Whether results are saved or not.
     '''
     def __init__(self, func, surr, acqf, **kwargs):
-        super(SurrogateOptimiser).__init__()
+        super(SurrogateOptimiser, self).__init__(**kwargs)
         
         self.func           = func
         self.surr           = surr
         self.acqf           = acqf
-        self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
+        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-2
         self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.fix_candidates = False if self.num_opt else (kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True)
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else (1 if self.num_opt else 101**2)
-        self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
-        self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
-        self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.surr.verbose   = self.verbose
         self.candidates     = None
 
@@ -98,7 +90,7 @@ class SurrogateOptimiser(Optimiser):
         for x0 in candidates:
 
             if (self.eq_cons is None) and (self.ineq_cons is None):
-                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain)
+                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol)
             else:
                 opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
             
