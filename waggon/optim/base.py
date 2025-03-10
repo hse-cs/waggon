@@ -70,8 +70,13 @@ class Optimiser(object):
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
         self.candidates     = None
 
+        if self.func.log_transform:
+            transform = lambda x: np.exp(x)
+        else:
+            transform = lambda x: x
+
         if self.error_type == 'f':
-            self.error = lambda x: np.min(np.linalg.norm(self.func(self.func.glob_min) - x, ord=2, axis=-1), axis=-1)
+            self.error = lambda x: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(x), ord=2, axis=-1), axis=-1)
         else:
             self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
     
@@ -108,7 +113,7 @@ class Optimiser(object):
     def predict(self):
         pass
     
-    def optimise(self, X=None, y=None, **kwargs):
+    def optimise(self, X=None, y=None, N=None):
         '''
         Runs the optimisation of the black-box function.
 
@@ -123,10 +128,10 @@ class Optimiser(object):
             Target values of the black-box function.
         '''
 
-        self.errs = []
+        self.errors = []
         
         if X is None:
-            X = self.create_candidates(N=-1)
+            X = self.create_candidates(N=-1 if N is None else N)
             X, y = self.func.sample(X)
             self.res = np.array([[np.min(self.func(X))]])
             self.params = np.array([X[np.argmin(self.func(X)), :]])
@@ -160,7 +165,7 @@ class Optimiser(object):
             y = np.concatenate((y, y_))
 
             error = self.error(y) if self.error_type == 'f' else self.error(X)
-            self.errs.append(error)
+            self.errors.append(error)
             
             if self.verbose > 0:
                 opt_loop.set_description(f"Optimisation error: {error:.4f}")

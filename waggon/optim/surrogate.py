@@ -157,15 +157,18 @@ class SurrogateOptimiser(Optimiser):
         self.acqf.conds = X[::self.func.n_obs]
         self.acqf.surr = self.surr
 
-        next_x = []
+        next_xs = []
 
-        for j in range(n_pred):
+        while len(next_xs) < n_pred:
             if self.num_opt:
-                next_x.append(self.numerical_search(X[np.argmin(y)]))
+                next_x = self.numerical_search(X[np.argmin(y)])
             else:
-                next_x.append(self.direct_search())
+                next_x = self.direct_search()
+            
+            if next_x not in X:
+                next_xs.append(next_x)
 
-        return np.array(next_x)
+        return np.array(next_xs)
     
     def _save(self, base_dir='test_results'):
         res_path = create_dir(self.func, self.acqf.name, self.surr.name, base_dir=base_dir)
