@@ -60,7 +60,7 @@ class Optimiser(object):
         self.func           = kwargs['func'] if 'func' in kwargs else Function()
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
+        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'f'
         self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
@@ -69,6 +69,11 @@ class Optimiser(object):
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
         self.candidates     = None
+
+        if self.error_type == 'f':
+            self.error = lambda x: np.min(np.linalg.norm(self.func(self.func.glob_min) - x, ord=2, axis=-1), axis=-1)
+        else:
+            self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
     
     def create_candidates(self, N=None):
         '''
@@ -118,7 +123,7 @@ class Optimiser(object):
             Target values of the black-box function.
         '''
 
-        self.errors = []
+        self.errs = []
         
         if X is None:
             X = self.create_candidates(N=-1)
@@ -132,12 +137,16 @@ class Optimiser(object):
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
         else:
-            opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop started...', leave=True, position=0)
+            # error = self.error(X) if self.error_type == 'f' else self.error(y)
+            opt_loop = tqdm(range(self.max_iter), desc="Optimisation started...", leave=True, position=0)
 
         for _ in opt_loop:
 
             next_x = self.predict(X, y)
             next_f = np.array([self.func(next_x)])
+
+            if self.plot_results:
+                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
 
             if next_f <= self.res[-1, :]:
                 self.res = np.concatenate((self.res, next_f.reshape(1, -1)))
@@ -147,22 +156,14 @@ class Optimiser(object):
                 self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))
 
             X_, y_ = self.func.sample(next_x)
-            
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
 
-            if self.error_type == 'x':
-                error = np.min(np.linalg.norm(self.func.glob_min - X, ord=2, axis=-1), axis=-1)
-            elif self.error_type == 'f':
-                error = np.min(np.linalg.norm(self.func(self.func.glob_min) - y, ord=2, axis=-1), axis=-1)
-            
-            self.errors.append(error)
+            error = self.error(y) if self.error_type == 'f' else self.error(X)
+            self.errs.append(error)
             
             if self.verbose > 0:
                 opt_loop.set_description(f"Optimisation error: {error:.4f}")
-            
-            if self.plot_results:
-                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
             
             if error <= self.eps:
                 print('Experiment finished successfully!')
@@ -191,6 +192,8 @@ class Optimiser(object):
         else:
             inter_conds = self.create_candidates(N=10201)
         
+        # transform = lambda x: np.exp(x) if self.func.log_transform else lambda x: x
+
         mu, std = self.surr.predict(inter_conds)
         mu = mu.numpy()
         y_true = self.func(inter_conds)
@@ -211,6 +214,7 @@ class Optimiser(object):
             def single_2d_plot(axis, f, title):
                 plt.subplot(axis)
                 colormap = plt.contourf(f, locator=ticker.LinearLocator(), extent=self.func.domain.flatten(), vmin=np.min(f), vmax=np.max(f))
+                # print(X !=)
                 plt.scatter(X[:, 0], X[:, 1], color='black')
                 for gb in self.func.glob_min:
                     plt.scatter(gb[0], gb[1], color='red', marker='*')

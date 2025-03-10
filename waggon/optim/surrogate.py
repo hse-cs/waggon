@@ -66,14 +66,15 @@ class SurrogateOptimiser(Optimiser):
         self.func           = func
         self.surr           = surr
         self.acqf           = acqf
-        self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else False
-        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-2
+        self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else True
+        self.num_opt_disp   = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
+        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-8
         self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
         self.surr.verbose   = self.verbose
         self.candidates     = None
 
-    def numerical_search(self):
+    def numerical_search(self, x0=None):
         '''
         Numerical optimisation of the acquisition function.
 
@@ -85,12 +86,16 @@ class SurrogateOptimiser(Optimiser):
         best_x = None
         best_acqf = np.inf
 
-        candidates = self.create_candidates()
+        if x0 is None:
+            candidates = self.create_candidates()
+        else:
+            candidates = np.array(self.n_candidates * [x0])
+            candidates += np.random.normal(0, self.eps, candidates.shape)
 
         for x0 in candidates:
 
             if (self.eq_cons is None) and (self.ineq_cons is None):
-                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol)
+                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
             else:
                 opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
             
@@ -156,7 +161,7 @@ class SurrogateOptimiser(Optimiser):
 
         for j in range(n_pred):
             if self.num_opt:
-                next_x.append(self.numerical_search())
+                next_x.append(self.numerical_search(X[np.argmin(y)]))
             else:
                 next_x.append(self.direct_search())
 

@@ -6,13 +6,14 @@ from .base import Acquisition
 
 
 class EI(Acquisition):
-    def __init__(self):
+    def __init__(self, log_transform=False):
         '''
         Expected Improvement (EI) acquisition function.
         '''
         super(EI, self).__init__()
         
         self.name = 'EI'
+        self.log_transform = log_transform
     
     def __call__(self, x, **kwargs):
         '''
@@ -40,7 +41,10 @@ class EI(Acquisition):
 
         EI = z_ * z_prob + std * z_dens
 
-        return -1.0 * EI
+        if self.log_transform:
+            return -1.0 * np.log(EI + 1e-22)
+        else:
+            return -1.0 * EI
 
 
 class CB(Acquisition):
