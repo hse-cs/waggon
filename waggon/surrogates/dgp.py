@@ -25,7 +25,7 @@ class DGP(Surrogate):
         self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 22
-        self.hidden_size = 16
+        self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 16
     
     def fit(self, X, y):
 
@@ -67,7 +67,6 @@ class DGP(Surrogate):
             observed_pred = self.model.likelihood(self.model(torch.tensor(X).float()))
             mean = observed_pred.mean
             std = torch.sqrt(observed_pred.variance)
-        # print(mean.shape, std.shape)
         return mean[0, 0, :], std[0, 0, :]
 
 
@@ -89,10 +88,8 @@ class SingleLayerGP(AbstractVariationalGP):
 class DeepLayer(DeepGPLayer):
     def __init__(self, input_dims, output_dims, inducing_points, mean_type='constant'):
         if output_dims is None:
-            # inducing_points = torch.randn(num_inducing, input_dims)
             batch_shape = torch.Size([])
         else:
-            # inducing_points = torch.randn(output_dims, num_inducing, input_dims)
             batch_shape = torch.Size([output_dims])
 
         variational_distribution = CholeskyVariationalDistribution(
@@ -124,8 +121,6 @@ class DeepLayer(DeepGPLayer):
         return MultivariateNormal(mean_x, covar_x)
 
 
-
-# Define DeepGP model (inherits from DeepGP)
 class DeepGPModel(DeepGP):
     def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep']):
         super().__init__()
@@ -144,4 +139,3 @@ class DeepGPModel(DeepGP):
         hidden_rep = self.input_layer(x).mean
         output = self.output_layer(hidden_rep)
         return output
-

@@ -4,8 +4,6 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
-import matplotlib.pyplot as plt
-from matplotlib import cm, ticker
 
 from .utils import _get_olhs_num
 from ..functions import Function
@@ -13,7 +11,7 @@ from ..functions import Function
 
 class Optimiser(object):
     def __init__(self, **kwargs):
-        super(Optimiser, self).__init__() # TODO: fix desc
+        super(Optimiser, self).__init__()
         '''
         Black-box optimiser.
 
@@ -188,53 +186,5 @@ class Optimiser(object):
         with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
     
-    def plot_iteration_results(self, X, next_x):
-        '''
-        For surrogate optimiser only.
-        '''
-        if self.func.dim == 1:
-            inter_conds = np.linspace(self.func.domain[:, 0], self.func.domain[:, 1], 121)
-        else:
-            inter_conds = self.create_candidates(N=10201)
-        
-        # transform = lambda x: np.exp(x) if self.func.log_transform else lambda x: x
-
-        mu, std = self.surr.predict(inter_conds)
-        mu = mu.numpy()
-        y_true = self.func(inter_conds)
-        
-        if self.func.dim == 1:
-            plt.plot(inter_conds, mu, label=f'Pred: {np.mean((y_true - mu)**2):.2f}', c='cornflowerblue')
-            plt.plot(inter_conds, y_true, label='True', c='orange')
-            # plt.scatter(X, y, c='black')
-            plt.legend()
-        else:
-            
-            y_true, mu = y_true.reshape(101, 101), mu.reshape(101, 101)
-            mse = (y_true - mu)**2
-
-            ei = self.acqf(inter_conds).numpy().reshape(101, 101)
-            x_pred = inter_conds[np.argmin(ei)]
-            
-            def single_2d_plot(axis, f, title):
-                plt.subplot(axis)
-                colormap = plt.contourf(f, locator=ticker.LinearLocator(), extent=self.func.domain.flatten(), vmin=np.min(f), vmax=np.max(f))
-                # print(X !=)
-                plt.scatter(X[:, 0], X[:, 1], color='black')
-                for gb in self.func.glob_min:
-                    plt.scatter(gb[0], gb[1], color='red', marker='*')
-                plt.scatter(x_pred[0], x_pred[1], color='cyan', marker='*')
-                plt.scatter(next_x[0], next_x[1], color='magenta', marker='*')
-                plt.title(title)
-                plt.colorbar(colormap)
-            
-            plt.figure(figsize=(24, 6))
-
-            single_2d_plot(141, y_true, 'True Function')
-            single_2d_plot(142, mu, 'Estimated Function')
-            single_2d_plot(143, mse, 'MSE')
-            single_2d_plot(144, ei, 'EI')
-            
-            plt.tight_layout()
-        
-        plt.show()
+    def plot_iteration_results(self):
+        pass
