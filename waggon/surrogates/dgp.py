@@ -65,7 +65,7 @@ class DGP(Surrogate):
             observed_pred = self.model.likelihood(self.model(torch.tensor(X).float()))
             mean = observed_pred.mean
             std = torch.sqrt(observed_pred.variance)
-        return mean[0, 0, :], std[0, 0, :]
+        return mean[0, 0, :].numpy(), std[0, 0, :].numpy()
 
 
 class SingleLayerGP(AbstractVariationalGP):

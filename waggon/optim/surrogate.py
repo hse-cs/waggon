@@ -97,7 +97,7 @@ class SurrogateOptimiser(Optimiser):
             candidates += np.random.normal(0, self.eps, candidates.shape)
         elif self.num_opt_start == 'grid':
             inter_conds = self.create_candidates(N=10201)
-            ei = self.acqf(inter_conds).numpy()
+            ei = self.acqf(inter_conds)
             candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
 
         for x0 in candidates:
@@ -205,7 +205,7 @@ class SurrogateOptimiser(Optimiser):
         # transform = lambda x: np.exp(x) if self.func.log_transform else lambda x: x
 
         mu, std = self.surr.predict(inter_conds)
-        mu = mu.numpy()
+        mu = mu
         y_true = self.func(inter_conds)
         
         if self.func.dim == 1:
@@ -218,7 +218,7 @@ class SurrogateOptimiser(Optimiser):
             y_true, mu = y_true.reshape(101, 101), mu.reshape(101, 101)
             mse = (y_true - mu)**2
 
-            ei = self.acqf(inter_conds).numpy().reshape(101, 101)
+            ei = self.acqf(inter_conds).reshape(101, 101)
             x_pred = inter_conds[np.argmin(ei)]
             
             def single_2d_plot(axis, f, title):
