@@ -90,7 +90,7 @@ class SurrogateOptimiser(Optimiser):
         best_x = None
         best_acqf = np.inf
 
-        if x0 is None:
+        if (x0 is None) and (self.num_opt_start != 'grid'):
             candidates = self.create_candidates()
         elif self.num_opt_start == 'random':
             candidates = np.array(self.n_candidates * [x0])
@@ -175,6 +175,9 @@ class SurrogateOptimiser(Optimiser):
                     x0 = X[np.argmin(y)]
                 
                 next_x = self.numerical_search(x0=x0)
+
+                if np.sum(np.any(np.unique(X, axis=0) == next_x, axis=1)): # to prevent singular DGP covar
+                    next_x = self.numerical_search(x0=x0)
             else:
                 next_x = self.direct_search()
             
@@ -221,7 +224,6 @@ class SurrogateOptimiser(Optimiser):
             def single_2d_plot(axis, f, title):
                 plt.subplot(axis)
                 colormap = plt.contourf(f, locator=ticker.LinearLocator(), extent=self.func.domain.flatten(), vmin=np.min(f), vmax=np.max(f))
-                # print(X !=)
                 plt.scatter(X[:, 0], X[:, 1], color='black')
                 for gb in self.func.glob_min:
                     plt.scatter(gb[0], gb[1], color='red', marker='*')

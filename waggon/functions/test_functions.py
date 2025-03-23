@@ -13,6 +13,7 @@ class three_hump_camel(Function):
         self.domain   = np.array([[-5, 5], [-5, 5]])
         self.name     = 'Three Hump Camel'
         self.glob_min = np.zeros(self.dim).reshape(1, -1)
+        self.f_min    = 0.0
         self.f        = lambda x: 2 * x[:, 0]**2 - 1.05 * x[:, 0]**4 + x[:, 0]**6 / 6 + x[:, 0]*x[:, 1] + x[:, 1]**2
 
 
@@ -27,6 +28,7 @@ class rosenbrock(Function):
         self.domain   = np.array([self.dim*[-2, 2]]).reshape(self.dim, 2)
         self.name     = f'Rosenbrock ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1)
+        self.f_min    = 0.0
         self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0).squeeze()
 
 
@@ -41,6 +43,7 @@ class tang(Function):
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = f'Styblinski-Tang ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
+        self.f_min    = 0.0
         self.f        = lambda x: np.sum(x**4 - 16*x**2 + 5*x + 39.16617*self.dim, axis=1).squeeze()
 
 
@@ -55,6 +58,7 @@ class ackley(Function):
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = 'Ackley'
         self.glob_min = np.zeros(self.dim).reshape(1, -1)
+        self.f_min    = 0.0
         self.f        = lambda x: -20 * np.exp(-0.2*np.sqrt((1./self.dim) * (np.sum(x**2, axis=1)))) -  np.exp((1./self.dim) * (np.sum(np.cos(2*np.pi*x), axis=1))) + np.e + 20
 
 
@@ -69,6 +73,7 @@ class levi(Function):
         self.domain   = np.array([self.dim*[-4, 6]]).reshape(self.dim, 2)
         self.name     = 'Lévi'
         self.glob_min = np.ones(self.dim).reshape(1, -1)
+        self.f_min    = 0.0
         self.f        = lambda x: (np.sin(3*np.pi*x[:, 0]))**2 + ((x[:, 0] - 1)**2) * (1 + (np.sin(3*np.pi*x[:, 1]))**2) + ((x[:, 1] - 1)**2) * (1 + (np.sin(2*np.pi*x[:, 1]))**2)
     
     def sample(self, x):
@@ -103,6 +108,7 @@ class himmelblau(Function):
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = 'Himmelblau'
         self.glob_min = np.array([[3.0, 2.0], [-2.805118, 3.131312], [-3.779310, -3.283186], [3.584428, -1.848126]])
+        self.f_min    = 0.0
         self.f        = lambda x: (x[:, 0]**2 + x[:, 1] - 11)**2 + (x[:, 0] + x[:, 1]**2 - 7)**2 
 
 
@@ -117,4 +123,5 @@ class holder(Function):
         self.domain   = np.array([self.dim*[-10, 10]]).reshape(self.dim, 2)
         self.name     = 'Holder'
         self.glob_min = np.array([[8.05502, 9.66459], [-8.05502, -9.66459], [-8.05502, 9.66459], [8.05502, -9.66459]])
+        self.f_min    = 0.0
         self.f        = lambda x: -np.abs(np.sin(x[:, 0]) * np.cos(x[:, 1]) * np.exp(np.abs(1 - np.sqrt(x[:, 0]**2 + x[:, 1]**2)/np.pi))) + 19.2085

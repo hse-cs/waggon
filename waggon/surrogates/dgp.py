@@ -1,10 +1,8 @@
 from .base import Surrogate
 
-import numpy as np
-from tqdm import tqdm
-
 import torch
 import gpytorch
+from tqdm import tqdm
 from gpytorch.models.deep_gps import DeepGP, DeepGPLayer
 from gpytorch.models import AbstractVariationalGP
 from gpytorch.means import ConstantMean, LinearMean
@@ -24,7 +22,7 @@ class DGP(Surrogate):
         self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
         self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 22
+        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 32
         self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 16
     
     def fit(self, X, y):
@@ -70,14 +68,13 @@ class DGP(Surrogate):
         return mean[0, 0, :], std[0, 0, :]
 
 
-# Define a single layer GP (inherits from AbstractVariationalGP)
 class SingleLayerGP(AbstractVariationalGP):
     def __init__(self, inducing_points, mean='const'):
         variational_distribution = CholeskyVariationalDistribution(inducing_points.size(0))
         variational_strategy = VariationalStrategy(self, inducing_points, variational_distribution)
         super().__init__(variational_strategy)
         self.mean_module = ConstantMean() if mean == 'const' else  LinearMean(inducing_points.size(1))
-        self.covar_module = ScaleKernel(RBFKernel(ard_num_dims=inducing_points.size(1)))  # ARD kernel for d-dimensional data
+        self.covar_module = ScaleKernel(RBFKernel(ard_num_dims=inducing_points.size(1))) 
 
     def forward(self, x):
         mean_x = self.mean_module(x)

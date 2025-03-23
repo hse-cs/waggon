@@ -74,7 +74,10 @@ class Optimiser(object):
             transform = lambda x: x
 
         if self.error_type == 'f':
-            self.error = lambda x: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(x), ord=2, axis=-1), axis=-1)
+            if self.func.f_min is None:
+                self.error = lambda x: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(x), ord=2, axis=-1), axis=-1)
+            else:
+                self.error = lambda x: np.min(np.linalg.norm(self.func.f_min - transform(x), ord=2, axis=-1), axis=-1)
         else:
             self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
     
@@ -140,7 +143,6 @@ class Optimiser(object):
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
         else:
-            # error = self.error(X) if self.error_type == 'f' else self.error(y)
             opt_loop = tqdm(range(self.max_iter), desc="Optimisation started...", leave=True, position=0)
 
         for _ in opt_loop:
