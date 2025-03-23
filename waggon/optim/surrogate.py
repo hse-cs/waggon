@@ -75,6 +75,7 @@ class SurrogateOptimiser(Optimiser):
         self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-8
         self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
+        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 16
         self.surr.verbose   = self.verbose
         self.candidates     = None
 
@@ -98,7 +99,12 @@ class SurrogateOptimiser(Optimiser):
         elif self.num_opt_start == 'grid':
             inter_conds = self.create_candidates(N=10201)
             ei = self.acqf(inter_conds)
-            candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
+            # print(inter_conds.shape, ei.shape, np.argpartition(ei, self.n_candidates).shape)
+            try:
+                candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
+            except ValueError:
+                ei = ei.squeeze()
+                candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
 
         for x0 in candidates:
             

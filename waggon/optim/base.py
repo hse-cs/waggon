@@ -57,7 +57,7 @@ class Optimiser(object):
         '''
         self.func           = kwargs['func'] if 'func' in kwargs else Function()
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
+        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-4
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'f'
         self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
