@@ -4,11 +4,13 @@ import pytest
 from waggon.functions import Function
 from waggon.functions import three_hump_camel
 from waggon.functions import ackley
+from waggon.functions import rosenbrock
 from waggon.functions import submanifold_rosenbrock
 
 from waggon.functions import FunctionV2
 from waggon.functions import ThreeHumpCamel
 from waggon.functions import Ackley
+from waggon.functions import Rosenbrock
 from waggon.functions import SubmanifoldRosenbrock
 
 from utils import check_func_call_dims
@@ -54,6 +56,34 @@ def test_thc(func, func_log):
 )
 def test_ackley(func, func_log):
     _test_func(func, func_log)
+
+
+@pytest.mark.parametrize(
+    "func, func_log", [
+        # Old API Rosenbrock
+        (
+            rosenbrock(dim=5, log_transform=False),
+            rosenbrock(dim=5)
+        ),
+        (
+            rosenbrock(dim=20, log_transform=False),
+            rosenbrock(dim=20)
+        ),
+        # New API Rosenbrock
+        (
+            Rosenbrock(dim=7),
+            Rosenbrock(dim=7, log_transform=True)
+        ),
+        (
+            Rosenbrock(dim=20),
+            Rosenbrock(dim=20, log_transform=True)
+        )
+    ]
+)
+def test_rosenbrock(func, func_log):
+    _test_func(func, func_log)
+
+
 
 @pytest.mark.parametrize(
     "func, func_log", [
