@@ -127,7 +127,11 @@ class FunctionV2(ABC):
         pass
 
     def __call__(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
-        y = self.func(x)
+        if hasattr(self, "dim"):
+            assert x.ndim == 2, f"Input array must be 2-dimensional, but it has shape {x.shape} with {x.ndim} dims"
+            assert x.shape[-1] == self.dim, f"Mismatch between function ({self.dim}) and input ({x.shape[-1]}) dims"
+
+        y = self.func(x, *args, **kwargs)
 
         if self.log_transform:
             return np.log(y + self.log_eps)

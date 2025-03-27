@@ -12,8 +12,6 @@ class ThreeHumpCamel(FunctionV2):
         self.name = "Three-hump camel function"
     
     def func(self, x: np.ndarray) -> np.ndarray:
-        assert x.ndim == 2
-        assert x.shape[1] == self.dim
         xc = x[..., 0]
         yc = x[..., 1]
         res = 2.0 * (xc ** 2) - 1.05 * (xc ** 4) + (1 / 6) * (xc ** 6) + (xc * yc) + (yc ** 2)

@@ -22,9 +22,6 @@ class SubmanifoldRosenbrock(FunctionV2):
         self.glob_min = np.expand_dims(x_min, 0)
 
     def func(self, x: np.ndarray) -> np.ndarray:
-        assert x.ndim == 2
-        assert x.shape[1] == self.dim
-        
         y = np.matmul(x, self.Q)
         return np.sum(
             100.0 * (y[..., 1:] - (y[..., :-1]) ** 2.0) ** 2.0 + (1.0 - y[..., :-1]) ** 2,

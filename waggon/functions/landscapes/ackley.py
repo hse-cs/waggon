@@ -12,9 +12,6 @@ class Ackley(FunctionV2):
         self.name = f"Ackley (dim={dim})"
     
     def func(self, x: np.ndarray) -> np.ndarray:
-        assert x.ndim == 2
-        assert x.shape[1] == self.dim
-
         a, b, c, d = 20.0, 0.2, 2 * np.pi, self.dim
         x_sq_sum = np.square(x).sum(axis=-1, keepdims=True)
         x_cos_sum = np.cos(c * x).sum(axis=-1, keepdims=True)

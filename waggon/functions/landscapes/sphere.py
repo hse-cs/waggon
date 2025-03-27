@@ -12,6 +12,4 @@ class Sphere(FunctionV2):
         self.name = f"Sphere (dim={dim})"
     
     def func(self, x: np.ndarray) -> np.ndarray:
-        assert x.ndim == 2, f"Input must got 2d-input, but it has shape {x.shape} with {x.ndim} dims"
-        assert x.shape[1] == self.dim, f"Mismatch between function ({self.dim}) and input ({x.shape[-1]}) dimensionalities"
         return np.square(x).sum(axis=1, keepdims=True)
