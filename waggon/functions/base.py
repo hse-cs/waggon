@@ -46,6 +46,7 @@ class Function:
         self.domain        = kwargs['domain'] if 'domain' in kwargs else np.array([[-10, 10]])
         self.name          = kwargs['name'] if 'name' in kwargs else 'parabola'
         self.glob_min      = kwargs['glob_min'] if 'glob_min' in kwargs else np.zeros(self.dim)
+        self.f_min         = kwargs['f_min'] if 'f_min' in kwargs else 0.0
         self.f             = kwargs['f'] if 'f' in kwargs else lambda x: x**2
         self.log_transform = kwargs['log_transform'] if 'log_transform' in kwargs else True
         self.log_eps       = kwargs['log_eps'] if 'log_eps' in kwargs else 1e-8

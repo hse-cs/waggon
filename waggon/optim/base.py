@@ -4,8 +4,6 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
-import matplotlib.pyplot as plt
-from matplotlib import cm, ticker
 
 from .utils import _get_olhs_num
 from ..functions import Function
@@ -13,7 +11,7 @@ from ..functions import Function
 
 class Optimiser(object):
     def __init__(self, **kwargs):
-        super(Optimiser, self).__init__() # TODO: fix desc
+        super(Optimiser, self).__init__()
         '''
         Black-box optimiser.
 
@@ -59,8 +57,8 @@ class Optimiser(object):
         '''
         self.func           = kwargs['func'] if 'func' in kwargs else Function()
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
-        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-1
-        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
+        self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-4
+        self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'f'
         self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
@@ -69,6 +67,19 @@ class Optimiser(object):
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
         self.candidates     = None
+
+        if self.func.log_transform:
+            transform = lambda x: np.exp(x)
+        else:
+            transform = lambda x: x
+
+        if self.error_type == 'f':
+            if self.func.f_min is None:
+                self.error = lambda x: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(x), ord=2, axis=-1), axis=-1)
+            else:
+                self.error = lambda x: np.min(np.linalg.norm(self.func.f_min - transform(x), ord=2, axis=-1), axis=-1)
+        else:
+            self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
     
     def create_candidates(self, N=None):
         '''
@@ -103,7 +114,7 @@ class Optimiser(object):
     def predict(self):
         pass
     
-    def optimise(self, X=None, y=None, **kwargs):
+    def optimise(self, X=None, y=None, N=None):
         '''
         Runs the optimisation of the black-box function.
 
@@ -121,7 +132,7 @@ class Optimiser(object):
         self.errors = []
         
         if X is None:
-            X = self.create_candidates(N=-1)
+            X = self.create_candidates(N=-1 if N is None else N)
             X, y = self.func.sample(X)
             self.res = np.array([[np.min(self.func(X))]])
             self.params = np.array([X[np.argmin(self.func(X)), :]])
@@ -132,12 +143,15 @@ class Optimiser(object):
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
         else:
-            opt_loop = tqdm(range(self.max_iter), desc='Optimisation loop started...', leave=True, position=0)
+            opt_loop = tqdm(range(self.max_iter), desc="Optimisation started...", leave=True, position=0)
 
         for _ in opt_loop:
 
             next_x = self.predict(X, y)
             next_f = np.array([self.func(next_x)])
+
+            if self.plot_results:
+                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
 
             if next_f <= self.res[-1, :]:
                 self.res = np.concatenate((self.res, next_f.reshape(1, -1)))
@@ -147,22 +161,14 @@ class Optimiser(object):
                 self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))
 
             X_, y_ = self.func.sample(next_x)
-            
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
 
-            if self.error_type == 'x':
-                error = np.min(np.linalg.norm(self.func.glob_min - X, ord=2, axis=-1), axis=-1)
-            elif self.error_type == 'f':
-                error = np.min(np.linalg.norm(self.func(self.func.glob_min) - y, ord=2, axis=-1), axis=-1)
-            
+            error = self.error(y) if self.error_type == 'f' else self.error(X)
             self.errors.append(error)
             
             if self.verbose > 0:
                 opt_loop.set_description(f"Optimisation error: {error:.4f}")
-            
-            if self.plot_results:
-                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
             
             if error <= self.eps:
                 print('Experiment finished successfully!')
@@ -182,50 +188,5 @@ class Optimiser(object):
         with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(self.res, f)
     
-    def plot_iteration_results(self, X, next_x):
-        '''
-        For surrogate optimiser only.
-        '''
-        if self.func.dim == 1:
-            inter_conds = np.linspace(self.func.domain[:, 0], self.func.domain[:, 1], 121)
-        else:
-            inter_conds = self.create_candidates(N=10201)
-        
-        mu, std = self.surr.predict(inter_conds)
-        mu = mu.numpy()
-        y_true = self.func(inter_conds)
-        
-        if self.func.dim == 1:
-            plt.plot(inter_conds, mu, label=f'Pred: {np.mean((y_true - mu)**2):.2f}', c='cornflowerblue')
-            plt.plot(inter_conds, y_true, label='True', c='orange')
-            # plt.scatter(X, y, c='black')
-            plt.legend()
-        else:
-            
-            y_true, mu = y_true.reshape(101, 101), mu.reshape(101, 101)
-            mse = (y_true - mu)**2
-
-            ei = self.acqf(inter_conds).numpy().reshape(101, 101)
-            x_pred = inter_conds[np.argmin(ei)]
-            
-            def single_2d_plot(axis, f, title):
-                plt.subplot(axis)
-                colormap = plt.contourf(f, locator=ticker.LinearLocator(), extent=self.func.domain.flatten(), vmin=np.min(f), vmax=np.max(f))
-                plt.scatter(X[:, 0], X[:, 1], color='black')
-                for gb in self.func.glob_min:
-                    plt.scatter(gb[0], gb[1], color='red', marker='*')
-                plt.scatter(x_pred[0], x_pred[1], color='cyan', marker='*')
-                plt.scatter(next_x[0], next_x[1], color='magenta', marker='*')
-                plt.title(title)
-                plt.colorbar(colormap)
-            
-            plt.figure(figsize=(24, 6))
-
-            single_2d_plot(141, y_true, 'True Function')
-            single_2d_plot(142, mu, 'Estimated Function')
-            single_2d_plot(143, mse, 'MSE')
-            single_2d_plot(144, ei, 'EI')
-            
-            plt.tight_layout()
-        
-        plt.show()
+    def plot_iteration_results(self):
+        pass

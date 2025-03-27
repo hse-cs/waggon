@@ -1,10 +1,8 @@
 from .base import Surrogate
 
-import numpy as np
-from tqdm import tqdm
-
 import torch
 import gpytorch
+from tqdm import tqdm
 from gpytorch.models.deep_gps import DeepGP, DeepGPLayer
 from gpytorch.models import AbstractVariationalGP
 from gpytorch.means import ConstantMean, LinearMean
@@ -24,8 +22,8 @@ class DGP(Surrogate):
         self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
         self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 22
-        self.hidden_size = 16
+        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 32
+        self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 16
     
     def fit(self, X, y):
 
@@ -67,18 +65,16 @@ class DGP(Surrogate):
             observed_pred = self.model.likelihood(self.model(torch.tensor(X).float()))
             mean = observed_pred.mean
             std = torch.sqrt(observed_pred.variance)
-        # print(mean.shape, std.shape)
-        return mean[0, 0, :], std[0, 0, :]
+        return mean[0, 0, :].numpy(), std[0, 0, :].numpy()
 
 
-# Define a single layer GP (inherits from AbstractVariationalGP)
 class SingleLayerGP(AbstractVariationalGP):
     def __init__(self, inducing_points, mean='const'):
         variational_distribution = CholeskyVariationalDistribution(inducing_points.size(0))
         variational_strategy = VariationalStrategy(self, inducing_points, variational_distribution)
         super().__init__(variational_strategy)
         self.mean_module = ConstantMean() if mean == 'const' else  LinearMean(inducing_points.size(1))
-        self.covar_module = ScaleKernel(RBFKernel(ard_num_dims=inducing_points.size(1)))  # ARD kernel for d-dimensional data
+        self.covar_module = ScaleKernel(RBFKernel(ard_num_dims=inducing_points.size(1))) 
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -89,10 +85,8 @@ class SingleLayerGP(AbstractVariationalGP):
 class DeepLayer(DeepGPLayer):
     def __init__(self, input_dims, output_dims, inducing_points, mean_type='constant'):
         if output_dims is None:
-            # inducing_points = torch.randn(num_inducing, input_dims)
             batch_shape = torch.Size([])
         else:
-            # inducing_points = torch.randn(output_dims, num_inducing, input_dims)
             batch_shape = torch.Size([output_dims])
 
         variational_distribution = CholeskyVariationalDistribution(
@@ -124,8 +118,6 @@ class DeepLayer(DeepGPLayer):
         return MultivariateNormal(mean_x, covar_x)
 
 
-
-# Define DeepGP model (inherits from DeepGP)
 class DeepGPModel(DeepGP):
     def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep']):
         super().__init__()
@@ -144,4 +136,3 @@ class DeepGPModel(DeepGP):
         hidden_rep = self.input_layer(x).mean
         output = self.output_layer(hidden_rep)
         return output
-
