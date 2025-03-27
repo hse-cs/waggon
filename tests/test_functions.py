@@ -13,6 +13,7 @@ from waggon.functions import Ackley
 from waggon.functions import Rosenbrock
 from waggon.functions import SubmanifoldRosenbrock
 from waggon.functions import StyblinskyTang
+from waggon.functions import Levi
 
 from utils import check_func_call_dims
 from utils import check_func_sample_dims
@@ -137,4 +138,16 @@ def test_submanifold(func, func_log):
     ]
 )
 def test_tang(func, func_log):
+    _test_func(func, func_log)
+
+
+@pytest.mark.parametrize(
+    "func, func_log", [
+        (
+            Levi(),
+            Levi(log_transform=True)
+        )
+    ]
+)
+def test_levi(func, func_log):
     _test_func(func, func_log)

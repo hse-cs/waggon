@@ -16,6 +16,7 @@ from .landscapes.ackley import Ackley
 from .landscapes.submanifold import SubmanifoldRosenbrock
 from .landscapes.rosenbrock import Rosenbrock
 from .landscapes.tang import StyblinskyTang
+from .landscapes.levi import Levi
 
 
 __all__ = [
@@ -38,5 +39,6 @@ __all__ = [
     "Ackley",
     "SubmanifoldRosenbrock",
     "Rosenbrock",
-    "StyblinskyTang"
+    "StyblinskyTang",
+    "Levi"
 ]
