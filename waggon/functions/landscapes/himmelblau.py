@@ -15,6 +15,7 @@ class Himmelblau(FunctionV2):
             [-3.779310, -3.283186], 
             [3.584428, -1.848126]
         ])
+        self.f_min = 0.0
     
     def func(self, x: np.ndarray) -> np.ndarray:
         return np.expand_dims(

@@ -9,6 +9,7 @@ class ThreeHumpCamel(FunctionV2):
         self.dim = 2
         self.domain = np.tile([-5, 5], reps=(2, 1))
         self.glob_min = np.zeros((1, self.dim))
+        self.f_min = 0.0
         self.name = "Three-hump camel function"
     
     def func(self, x: np.ndarray) -> np.ndarray:

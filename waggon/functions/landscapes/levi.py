@@ -10,6 +10,7 @@ class Levi(FunctionV2):
         self.domain = np.tile([-4, 6], reps=(2, 1))
         self.name = "Lévi"
         self.glob_min = np.ones((1, 2))
+        self.f_min = 0.0
     
     def func(self, x: np.ndarray) -> np.ndarray:
         y = np.sin(3 * np.pi * x[..., 0]) ** 2

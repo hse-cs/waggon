@@ -10,6 +10,7 @@ class Rosenbrock(FunctionV2):
         self.domain = np.tile([-2, 2], reps=(dim, 1))
         self.name = f"Rosenbrock (dim={dim})"
         self.glob_min = np.ones((1, dim))
+        self.f_min = 0.0
     
     def func(self, x: np.ndarray) -> np.ndarray:
         return np.sum(

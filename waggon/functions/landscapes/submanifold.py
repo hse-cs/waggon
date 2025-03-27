@@ -20,6 +20,7 @@ class SubmanifoldRosenbrock(FunctionV2):
 
         x_min, _, _, _ = scipy.linalg.lstsq(Q.T, b)
         self.glob_min = np.expand_dims(x_min, 0)
+        self.f_min = 0.0
 
     def func(self, x: np.ndarray) -> np.ndarray:
         y = np.matmul(x, self.Q)
