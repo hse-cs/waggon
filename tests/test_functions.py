@@ -12,6 +12,7 @@ from waggon.functions import ThreeHumpCamel
 from waggon.functions import Ackley
 from waggon.functions import Rosenbrock
 from waggon.functions import SubmanifoldRosenbrock
+from waggon.functions import StyblinskyTang
 
 from utils import check_func_call_dims
 from utils import check_func_sample_dims
@@ -116,4 +117,24 @@ def test_rosenbrock(func, func_log):
     ]
 )
 def test_submanifold(func, func_log):
+    _test_func(func, func_log)
+
+
+@pytest.mark.parametrize(
+    "func, func_log", [
+        (
+            StyblinskyTang(dim=4),
+            StyblinskyTang(dim=4, log_transform=True)
+        ),
+        (
+            StyblinskyTang(dim=1),
+            StyblinskyTang(dim=1, log_transform=True)
+        ),
+        (
+            StyblinskyTang(dim=20),
+            StyblinskyTang(dim=20, log_transform=True)
+        )
+    ]
+)
+def test_tang(func, func_log):
     _test_func(func, func_log)
