@@ -1,3 +1,7 @@
+from abc import ABC
+from abc import abstractmethod
+from typing import Tuple
+
 import numpy as np
 
 
@@ -97,3 +101,52 @@ class Function:
             X = np.concatenate((X, X_))
         
         return X, y
+
+
+class FunctionV2(ABC):
+    def __init__(self, log_transform=False, log_eps=1e-7, n_obs=1, sampler='normal', **sampler_kwargs):
+        self.log_transform = log_transform
+        self.log_eps = log_eps
+        self.n_obs = n_obs
+        
+        if sampler == "normal":
+            self.sampler = sampler
+            self.sigma = sampler_kwargs.pop('sigma', 1e-1)
+        else:
+            raise ValueError(
+                f"{sampler} sampler is not supported now! :("
+            )
+        
+        if len(sampler_kwargs) != 0:
+            print(f"Not supported arguments: {sampler_kwargs.keys()}")
+        
+        if not hasattr(self, 'name'):
+            self.name = self.__class__.__name__
+        
+    @abstractmethod
+    def func(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
+        pass
+
+    def __call__(self, x: np.ndarray, *args, **kwargs) -> np.ndarray:
+        if hasattr(self, "dim"):
+            assert x.ndim == 2, f"Input array must be 2-dimensional, but it has shape {x.shape} with {x.ndim} dims"
+            assert x.shape[-1] == self.dim, f"Mismatch between function ({self.dim}) and input ({x.shape[-1]}) dims"
+
+        y = self.func(x, *args, **kwargs)
+
+        if self.log_transform:
+            return np.log(y + self.log_eps)
+        return y
+    
+    def sample(self, x: np.ndarray, *args, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+        y = self(x, *args, **kwargs)
+        y_mu = np.repeat(y, repeats=self.n_obs, axis=-2)
+        
+        x_batch = np.repeat(x, repeats=self.n_obs, axis=-2)
+        # Right now only normal sampler available
+        y_batch = np.random.normal(loc=y_mu, scale=self.sigma, size=y_mu.shape)
+
+        return x_batch, y_batch
+
+    def __repr__(self) -> str:
+        return self.name

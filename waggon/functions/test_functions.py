@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.linalg
+
 from .base import Function
 
 
@@ -43,8 +45,15 @@ class tang(Function):
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = f'Styblinski-Tang ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
+
+        self.f        = lambda x: np.sum(
+            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x + 39.16617 * self.dim, 
+            axis=-1, 
+        )
+
         self.f_min    = 0.0
         self.f        = lambda x: np.sum(x**4 - 16*x**2 + 5*x + 39.16617*self.dim, axis=1).squeeze()
+
 
 
 class ackley(Function):
@@ -75,6 +84,7 @@ class levi(Function):
         self.glob_min = np.ones(self.dim).reshape(1, -1)
         self.f_min    = 0.0
         self.f        = lambda x: (np.sin(3*np.pi*x[:, 0]))**2 + ((x[:, 0] - 1)**2) * (1 + (np.sin(3*np.pi*x[:, 1]))**2) + ((x[:, 1] - 1)**2) * (1 + (np.sin(2*np.pi*x[:, 1]))**2)
+
     
     def sample(self, x):
         X, y = None, None
@@ -125,3 +135,29 @@ class holder(Function):
         self.glob_min = np.array([[8.05502, 9.66459], [-8.05502, -9.66459], [-8.05502, 9.66459], [8.05502, -9.66459]])
         self.f_min    = 0.0
         self.f        = lambda x: -np.abs(np.sin(x[:, 0]) * np.cos(x[:, 1]) * np.exp(np.abs(1 - np.sqrt(x[:, 0]**2 + x[:, 1]**2)/np.pi))) + 19.2085
+
+
+class submanifold_rosenbrock(Function):
+    """
+    Submanifold Rosenbrock problem function
+    """
+    def __init__(self, dim=20, sub_dim=8, **kwargs):
+        super().__init__(**kwargs)
+        self.dim = dim
+        self.sub_dim = sub_dim
+        self.domain = np.tile([-10, 10], reps=(dim, 2))
+        
+        self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
+        
+        A = np.random.randn(self.dim, self.sub_dim)
+        Q, _ = np.linalg.qr(A)
+        b = np.ones(sub_dim)
+
+        x_min, _, _, _ = scipy.linalg.lstsq(Q.T, b)
+
+        self.glob_min = np.expand_dims(x_min, 0)
+        self.Q = Q
+        self.f = lambda x: np.sum(
+            100 * (x @ self.Q[:, 1:] - (x @ self.Q[:, :-1])**2)**2 + (1 - (x @ self.Q[:, :-1])) ** 2,
+            axis=-1
+        )
