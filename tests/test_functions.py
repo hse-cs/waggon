@@ -15,6 +15,7 @@ from waggon.functions import SubmanifoldRosenbrock
 from waggon.functions import StyblinskyTang
 from waggon.functions import Levi
 from waggon.functions import Himmelblau
+from waggon.functions import Holder
 
 from utils import check_func_call_dims
 from utils import check_func_sample_dims
@@ -163,4 +164,16 @@ def test_levi(func, func_log):
     ]
 )
 def test_himmelblau(func, func_log):
+    _test_func(func, func_log)
+
+
+@pytest.mark.parametrize(
+    "func, func_log", [
+        (
+            Holder(),
+            Holder(log_transform=True)
+        )
+    ]
+)
+def test_holder(func, func_log):
     _test_func(func, func_log)

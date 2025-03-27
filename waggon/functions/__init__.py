@@ -18,6 +18,7 @@ from .landscapes.rosenbrock import Rosenbrock
 from .landscapes.tang import StyblinskyTang
 from .landscapes.levi import Levi
 from .landscapes.himmelblau import Himmelblau
+from .landscapes.holder import Holder
 
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "Rosenbrock",
     "StyblinskyTang",
     "Levi",
-    "Himmelblau"
+    "Himmelblau",
+    "Holder"
 ]
