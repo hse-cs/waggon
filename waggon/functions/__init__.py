@@ -17,6 +17,7 @@ from .landscapes.submanifold import SubmanifoldRosenbrock
 from .landscapes.rosenbrock import Rosenbrock
 from .landscapes.tang import StyblinskyTang
 from .landscapes.levi import Levi
+from .landscapes.himmelblau import Himmelblau
 
 
 __all__ = [
@@ -40,5 +41,6 @@ __all__ = [
     "SubmanifoldRosenbrock",
     "Rosenbrock",
     "StyblinskyTang",
-    "Levi"
+    "Levi",
+    "Himmelblau"
 ]

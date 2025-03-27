@@ -14,6 +14,7 @@ from waggon.functions import Rosenbrock
 from waggon.functions import SubmanifoldRosenbrock
 from waggon.functions import StyblinskyTang
 from waggon.functions import Levi
+from waggon.functions import Himmelblau
 
 from utils import check_func_call_dims
 from utils import check_func_sample_dims
@@ -150,4 +151,16 @@ def test_tang(func, func_log):
     ]
 )
 def test_levi(func, func_log):
+    _test_func(func, func_log)
+
+
+@pytest.mark.parametrize(
+    "func, func_log", [
+        (
+            Himmelblau(),
+            Himmelblau(log_transform=True)
+        )
+    ]
+)
+def test_himmelblau(func, func_log):
     _test_func(func, func_log)
