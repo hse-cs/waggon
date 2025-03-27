@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg
 
 from .base import Function
+from ..utils import fixed_numpy_seed
 
 
 class three_hump_camel(Function):
@@ -141,7 +142,7 @@ class submanifold_rosenbrock(Function):
     """
     Submanifold Rosenbrock problem function
     """
-    def __init__(self, dim=20, sub_dim=8, **kwargs):
+    def __init__(self, dim=20, sub_dim=8, seed=73, **kwargs):
         super().__init__(**kwargs)
         self.dim = dim
         self.sub_dim = sub_dim
@@ -149,7 +150,8 @@ class submanifold_rosenbrock(Function):
         
         self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
         
-        A = np.random.randn(self.dim, self.sub_dim)
+        with fixed_numpy_seed(seed=seed):
+            A = np.random.randn(self.dim, self.sub_dim)
         Q, _ = np.linalg.qr(A)
         b = np.ones(sub_dim)
 
