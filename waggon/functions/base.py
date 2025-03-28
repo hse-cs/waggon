@@ -67,10 +67,10 @@ class Function:
         self.f(x) : np.array of shape (n_samples, func.dim)
             Black-box function values.
         '''
-        if not self.log_transform:
-            return self.f(x)
-        else:
+        if self.log_transform:
             return np.log(self.f(x) + self.log_eps)
+        else:
+            return self.f(x)
 
     def sample(self, x): # TODO: change to any distribution
         '''

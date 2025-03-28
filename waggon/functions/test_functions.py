@@ -2,7 +2,6 @@ import numpy as np
 import scipy.linalg
 
 from .base import Function
-from ..utils import fixed_numpy_seed
 
 
 class three_hump_camel(Function):
@@ -33,28 +32,6 @@ class rosenbrock(Function):
         self.glob_min = np.ones(self.dim).reshape(1, -1)
         self.f_min    = 0.0
         self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0).squeeze()
-
-
-class tang(Function):
-    '''
-    d-dimensional Styblinsky-Tang function.
-    '''
-    def __init__(self, dim=20, **kwargs):
-        super(tang, self).__init__(**kwargs)
-
-        self.dim      = dim
-        self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
-        self.name     = f'Styblinski-Tang ({self.dim} dim.)'
-        self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
-
-        self.f        = lambda x: np.sum(
-            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x + 39.16617 * self.dim, 
-            axis=-1, 
-        )
-
-        self.f_min    = 0.0
-        self.f        = lambda x: np.sum(x**4 - 16*x**2 + 5*x + 39.16617*self.dim, axis=1).squeeze()
-
 
 
 class ackley(Function):
@@ -146,12 +123,13 @@ class submanifold_rosenbrock(Function):
         super().__init__(**kwargs)
         self.dim = dim
         self.sub_dim = sub_dim
+        self.sigma = 1.0
         self.domain = np.tile([-10, 10], reps=(dim, 2))
         
         self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
         
-        with fixed_numpy_seed(seed=seed):
-            A = np.random.randn(self.dim, self.sub_dim)
+        np.random.seed(kwargs['seed'])
+        A = np.random.randn(self.dim, self.sub_dim)
         Q, _ = np.linalg.qr(A)
         b = np.ones(sub_dim)
 
@@ -163,3 +141,49 @@ class submanifold_rosenbrock(Function):
             100 * (x @ self.Q[:, 1:] - (x @ self.Q[:, :-1])**2)**2 + (1 - (x @ self.Q[:, :-1])) ** 2,
             axis=-1
         )
+
+
+class tang(Function):
+    '''
+    d-dimensional Styblinsky-Tang function.
+    '''
+    def __init__(self, dim=20, **kwargs):
+        super(tang, self).__init__(**kwargs)
+
+        self.dim      = dim
+        self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
+        self.name     = f'Styblinski-Tang ({self.dim} dim.)'
+        self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
+
+        self.f        = lambda x: np.sum(
+            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x + 39.16617 * self.dim, 
+            axis=-1, 
+        )
+        self.f_min    = 0.0
+        self.sigma    = lambda x: np.abs(x[:, 0] * np.sin(x[:, 1] - (-2.903534))) if 'sigma' in kwargs else lambda x: 1e-1
+    
+    def __call__(self, x):
+        if self.log_transform:
+            if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
+                return np.log(self.f(x) + self.log_eps) 
+            else:
+                return np.log(self.f(x) + self.sigma(x) + self.log_eps) 
+        else:
+            if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
+                return self.f(x)
+            else:
+                return self.f(x) + self.sigma(x)
+
+    def sample(self, x):
+
+        y = np.random.normal(self.__call__(x[0, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
+        X = x[0, :]*np.ones((self.n_obs, 1))
+        
+        for i in range(1, x.shape[0]):
+            y_ = np.random.normal(self.__call__(x[i, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
+            X_ = x[i, :]*np.ones((self.n_obs, 1))
+
+            y = np.concatenate((y, y_))
+            X = np.concatenate((X, X_))
+        
+        return X, y

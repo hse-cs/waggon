@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="waggon",
-    version="0.2.7",
+    version="0.2.9",
     description="WAsserstein Global Gradient-free OptimisatioN (WAGGON) methods library.",
     packages=find_packages(),
     long_description=long_description,
@@ -21,7 +21,7 @@ setup(
     ],
     python_requires=">=3.11",
     install_requires=[
-        "GPy==1.13.2", 
+        "GPy==1.13.2",
         "gpytorch==1.10.0", 
         "matplotlib==3.7.5", 
         "numpy==1.26.0",
