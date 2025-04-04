@@ -72,10 +72,10 @@ class SurrogateOptimiser(Optimiser):
         self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else True
         self.num_opt_start  = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
         self.num_opt_disp   = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
-        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-8
+        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-6
         self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 16
+        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 22
         self.surr.verbose   = self.verbose
         self.candidates     = None
 
@@ -101,10 +101,13 @@ class SurrogateOptimiser(Optimiser):
             ei = self.acqf(inter_conds)
             # print(inter_conds.shape, ei.shape, np.argpartition(ei, self.n_candidates).shape)
             try:
-                candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
+                ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
+                print(ids.shape, inter_conds.shape)
+                candidates = np.take_along_axis(inter_conds, ids, axis=0)
             except ValueError:
                 ei = ei.squeeze()
-                candidates = inter_conds[np.argpartition(ei, self.n_candidates)[:self.n_candidates]]
+                ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
+                candidates = np.take_along_axis(inter_conds, ids, axis=0)
 
         for x0 in candidates:
             
