@@ -143,26 +143,26 @@ class Optimiser(object):
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
         else:
-            opt_loop = tqdm(range(self.max_iter), desc="Optimisation started...", leave=True, position=0)
+            error = self.error(y) if self.error_type == 'f' else self.error(X)
+            opt_loop = tqdm(range(self.max_iter), desc=f"Optimisation error: {error:.4f}", leave=True, position=0)
 
         for _ in opt_loop:
 
             next_x = self.predict(X, y)
-            next_f = np.array([self.func(next_x)])
-
-            if self.plot_results:
-                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
-
-            if next_f <= self.res[-1, :]:
-                self.res = np.concatenate((self.res, next_f.reshape(1, -1)))
-                self.params = np.concatenate((self.params, next_x.reshape(1, -1)))
-            else:
-                self.res = np.concatenate((self.res, self.res[-1, :].reshape(1, -1)))
-                self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))
 
             X_, y_ = self.func.sample(next_x)
             X = np.concatenate((X, X_))
             y = np.concatenate((y, y_))
+
+            if self.plot_results:
+                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
+
+            if y_ <= self.res[-1, :]:
+                self.res = np.concatenate((self.res, y_.reshape(1, -1)))
+                self.params = np.concatenate((self.params, next_x.reshape(1, -1)))
+            else:
+                self.res = np.concatenate((self.res, self.res[-1, :].reshape(1, -1)))
+                self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))
 
             error = self.error(y) if self.error_type == 'f' else self.error(X)
             self.errors.append(error)

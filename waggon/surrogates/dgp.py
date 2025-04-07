@@ -7,9 +7,9 @@ from gpytorch.models.deep_gps import DeepGP, DeepGPLayer
 from gpytorch.models import AbstractVariationalGP
 from gpytorch.means import ConstantMean, LinearMean
 from gpytorch.likelihoods import GaussianLikelihood
-from gpytorch.kernels import RBFKernel, ScaleKernel
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.mlls import VariationalELBO, DeepApproximateMLL
+from gpytorch.kernels import RBFKernel, ScaleKernel, MaternKernel
 from gpytorch.variational import CholeskyVariationalDistribution, VariationalStrategy
 
 
@@ -107,10 +107,24 @@ class DeepLayer(DeepGPLayer):
             self.mean_module = ConstantMean(batch_shape=batch_shape)
         else:
             self.mean_module = LinearMean(input_dims)
+        # self.covar_module = ScaleKernel(
+        #     RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims),
+        #     batch_shape=batch_shape, ard_num_dims=input_dims
+        # )
+
         self.covar_module = ScaleKernel(
-            RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims),
-            batch_shape=batch_shape, ard_num_dims=None
+            MaternKernel(
+                nu=2.5,  # Matern-5/2 kernel for smoothness
+                lengthscale_prior=gpytorch.priors.GammaPrior(3, 6),  # Constrain lengthscales
+                # batch_shape=batch_shape, ard_num_dims=input_dims
+            ),
+            # outputscale_prior=gpytorch.priors.GammaPrior(2, 0.15)
+            batch_shape=batch_shape, ard_num_dims=input_dims
         )
+        
+        # Initialize hyperparameters conservatively
+        self.covar_module.base_kernel.lengthscale = 1.0
+        self.covar_module.outputscale = 1.0
 
     def forward(self, x):
         mean_x = self.mean_module(x)

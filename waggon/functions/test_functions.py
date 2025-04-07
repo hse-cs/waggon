@@ -128,7 +128,7 @@ class submanifold_rosenbrock(Function):
         
         self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
         
-        np.random.seed(kwargs['seed'])
+        np.random.seed(seed)
         A = np.random.randn(self.dim, self.sub_dim)
         Q, _ = np.linalg.qr(A)
         b = np.ones(sub_dim)

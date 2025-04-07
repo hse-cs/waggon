@@ -99,10 +99,8 @@ class SurrogateOptimiser(Optimiser):
         elif self.num_opt_start == 'grid':
             inter_conds = self.create_candidates(N=10201)
             ei = self.acqf(inter_conds)
-            # print(inter_conds.shape, ei.shape, np.argpartition(ei, self.n_candidates).shape)
             try:
                 ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
-                print(ids.shape, inter_conds.shape)
                 candidates = np.take_along_axis(inter_conds, ids, axis=0)
             except ValueError:
                 ei = ei.squeeze()
@@ -192,7 +190,7 @@ class SurrogateOptimiser(Optimiser):
             
             if next_x not in X:
                 next_xs.append(next_x)
-
+        
         return np.array(next_xs)
     
     def _save(self, base_dir='test_results'):
