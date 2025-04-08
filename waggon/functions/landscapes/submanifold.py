@@ -1,10 +1,30 @@
 import numpy as np
 import scipy.linalg
 from ..base import FunctionV2
+from ...utils.utils import fixed_numpy_seed
 
 
 class SubmanifoldRosenbrock(FunctionV2):
-    def __init__(self, dim=20, sub_dim=8, **kwargs):
+    """
+    Submanifold Rosenbrock problem function
+
+    Parameters
+    ----------
+    dim: int, default 20
+        Dimensionality of the function
+    sub_dim: int, default 8
+        Sub-dimensionality of the function
+    seed: int | None, default None
+        Seed for mapping matrix generation
+    **kwargs
+        Arguments passed to FunctionV2 base class
+    
+    Notes
+    -----
+    In case `seed=None`, NumPy automatically generates a seed 
+    based on the system entropy source.
+    """
+    def __init__(self, dim=20, sub_dim=8, seed=None, **kwargs):
         super().__init__(**kwargs)
 
         self.dim = dim
@@ -12,7 +32,8 @@ class SubmanifoldRosenbrock(FunctionV2):
         self.domain = np.tile([-10, 10], reps=(dim, 1))
         self.name = f"SubmanifoldRosenbrock (dim={dim}, subdim={sub_dim})"
 
-        A = np.random.randn(dim, sub_dim)
+        with fixed_numpy_seed(seed):
+            A = np.random.randn(dim, sub_dim)
         Q, _ = np.linalg.qr(A)
         self.Q = Q
 
