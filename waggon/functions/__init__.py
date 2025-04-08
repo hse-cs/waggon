@@ -10,15 +10,15 @@ from .test_functions import holder
 from .test_functions import submanifold_rosenbrock
 
 from .base import FunctionV2
-from .landscapes import Sphere
-from .landscapes import ThreeHumpCamel
-from .landscapes import Ackley
-from .landscapes import SubmanifoldRosenbrock
-from .landscapes import Rosenbrock
-from .landscapes import StyblinskyTang
-from .landscapes import Levi
-from .landscapes import Himmelblau
-from .landscapes import Holder
+from .landscapes.sphere import Sphere
+from .landscapes.thc import ThreeHumpCamel
+from .landscapes.ackley import Ackley
+from .landscapes.submanifold import SubmanifoldRosenbrock
+from .landscapes.rosenbrock import Rosenbrock
+from .landscapes.tang import StyblinskyTang
+from .landscapes.levi import Levi
+from .landscapes.himmelblau import Himmelblau
+from .landscapes.holder import Holder
 
 
 __all__ = [
@@ -31,9 +31,6 @@ __all__ = [
     'tang',
     'holder',
     'submanifold_rosenbrock',
-    # 'nonlinear_submanifold',
-    # 'optimal_control',
-    # 'NNhyperparams'
     
     "FunctionV2",
     "Sphere",
