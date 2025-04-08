@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg
 
 from .base import Function
+from ..utils.utils import fixed_numpy_seed
 
 
 class three_hump_camel(Function):
@@ -31,7 +32,7 @@ class rosenbrock(Function):
         self.name     = f'Rosenbrock ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1)
         self.f_min    = 0.0
-        self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0).squeeze()
+        self.f        = lambda x: np.sum(np.array([100 * (x[:, i+1] - x[:, i] ** 2)**2 + (1 - x[:, i])**2 for i in range(self.dim - 1)]), axis=0)
 
 
 class ackley(Function):
@@ -118,8 +119,24 @@ class holder(Function):
 class submanifold_rosenbrock(Function):
     """
     Submanifold Rosenbrock problem function
+
+    Parameters
+    ----------
+    dim: int, default 20
+        Dimensionality of the function
+    sub_dim: int, default 8
+        Sub-dimensionality of the function
+    seed: int | None, default None
+        Seed for mapping matrix generation
+    **kwargs
+        Arguments passed to Function base class
+    
+    Notes
+    -----
+    In case `seed=None`, NumPy automatically generates a seed
+    based on the system entropy source.
     """
-    def __init__(self, dim=20, sub_dim=8, seed=73, **kwargs):
+    def __init__(self, dim=20, sub_dim=8, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.dim = dim
         self.sub_dim = sub_dim
@@ -128,8 +145,8 @@ class submanifold_rosenbrock(Function):
         
         self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
         
-        np.random.seed(seed)
-        A = np.random.randn(self.dim, self.sub_dim)
+        with fixed_numpy_seed(seed):
+            A = np.random.randn(self.dim, self.sub_dim)
         Q, _ = np.linalg.qr(A)
         b = np.ones(sub_dim)
 
