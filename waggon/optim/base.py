@@ -5,9 +5,9 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import qmc
 
-from .utils import _get_olhs_num
 from ..functions import Function
 
+from ._utils import _get_olhs_num 
 
 class Optimiser(object):
     def __init__(self, **kwargs):

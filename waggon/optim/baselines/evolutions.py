@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 from ..base import Optimiser
-from ..utils import create_dir
+from .._utils import create_dir
 
 
 class DifferentialEvolutionOptimizer(Optimiser):
