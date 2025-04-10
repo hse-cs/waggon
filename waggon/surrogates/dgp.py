@@ -1,15 +1,16 @@
 from .base import Surrogate
 
+import gc
 import torch
 import gpytorch
 from tqdm import tqdm
 from gpytorch.models.deep_gps import DeepGP, DeepGPLayer
 from gpytorch.models import AbstractVariationalGP
 from gpytorch.means import ConstantMean, LinearMean
+from gpytorch.kernels import RBFKernel, ScaleKernel
 from gpytorch.likelihoods import GaussianLikelihood
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.mlls import VariationalELBO, DeepApproximateMLL
-from gpytorch.kernels import RBFKernel, ScaleKernel, MaternKernel
 from gpytorch.variational import CholeskyVariationalDistribution, VariationalStrategy
 
 
@@ -24,13 +25,18 @@ class DGP(Surrogate):
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 32
         self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 16
+
+        self.gen = torch.Generator()
+        self.gen.manual_seed(2208060503)
     
     def fit(self, X, y):
+        
+        del self.model
+        gc.collect()
 
-        if self.model is None:
-            self.model = DeepGPModel(X.shape[1], y.shape[1],
-                                     hidden_size=self.hidden_size,
-                                     num_inducing=self.num_inducing)
+        self.model = DeepGPModel(X.shape[1], y.shape[1],
+                                 hidden_size=self.hidden_size,
+                                 num_inducing=self.num_inducing, gen=self.gen)
         
         X = torch.tensor(X).float()
         y = torch.tensor(y).float().squeeze()
@@ -107,24 +113,11 @@ class DeepLayer(DeepGPLayer):
             self.mean_module = ConstantMean(batch_shape=batch_shape)
         else:
             self.mean_module = LinearMean(input_dims)
-        # self.covar_module = ScaleKernel(
-        #     RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims),
-        #     batch_shape=batch_shape, ard_num_dims=input_dims
-        # )
 
         self.covar_module = ScaleKernel(
-            MaternKernel(
-                nu=2.5,  # Matern-5/2 kernel for smoothness
-                lengthscale_prior=gpytorch.priors.GammaPrior(3, 6),  # Constrain lengthscales
-                # batch_shape=batch_shape, ard_num_dims=input_dims
-            ),
-            # outputscale_prior=gpytorch.priors.GammaPrior(2, 0.15)
+            RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims),
             batch_shape=batch_shape, ard_num_dims=input_dims
         )
-        
-        # Initialize hyperparameters conservatively
-        self.covar_module.base_kernel.lengthscale = 1.0
-        self.covar_module.outputscale = 1.0
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -133,20 +126,19 @@ class DeepLayer(DeepGPLayer):
 
 
 class DeepGPModel(DeepGP):
-    def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep']):
+    def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep'], gen=None):
         super().__init__()
 
-        gen = torch.Generator()
-        gen.manual_seed(2208060503)
         inducing_points = torch.rand(num_inducing, in_dim, generator=gen)
         output_inducing = torch.rand(num_inducing, hidden_size if layers[1]=='deep' else 1, generator=gen)
 
-        self.input_layer = DeepLayer(in_dim, hidden_size, inducing_points) if layers[0]=='deep' else SingleLayerGP(inducing_points)
-        self.output_layer =  DeepLayer(hidden_size, None, output_inducing) if layers[1]=='deep' else SingleLayerGP(output_inducing)
+        self.input_layer = DeepLayer(in_dim, hidden_size, inducing_points, mean_type='linear') if layers[0]=='deep' else SingleLayerGP(inducing_points)
+        self.output_layer =  DeepLayer(hidden_size, None, output_inducing, mean_type='linear') if layers[1]=='deep' else SingleLayerGP(output_inducing)
         
         self.likelihood = GaussianLikelihood()
 
     def forward(self, x):
         hidden_rep = self.input_layer(x).mean
+        hidden_rep = torch.tanh(hidden_rep)
         output = self.output_layer(hidden_rep)
         return output

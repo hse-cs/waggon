@@ -1,5 +1,4 @@
 from .base import Function
-# from .nn_hyperparams import NNhyperparams
 from .test_functions import three_hump_camel 
 from .test_functions import rosenbrock 
 from .test_functions import ackley
@@ -10,15 +9,21 @@ from .test_functions import holder
 from .test_functions import submanifold_rosenbrock
 
 from .base import FunctionV2
-from .landscapes import Sphere
-from .landscapes import ThreeHumpCamel
-from .landscapes import Ackley
-from .landscapes import SubmanifoldRosenbrock
-from .landscapes import Rosenbrock
-from .landscapes import StyblinskyTang
-from .landscapes import Levi
-from .landscapes import Himmelblau
-from .landscapes import Holder
+from .landscapes.sphere import Sphere
+from .landscapes.thc import ThreeHumpCamel
+from .landscapes.ackley import Ackley
+from .landscapes.submanifold import SubmanifoldRosenbrock
+from .landscapes.rosenbrock import Rosenbrock
+from .landscapes.tang import StyblinskyTang
+from .landscapes.levi import Levi
+from .landscapes.himmelblau import Himmelblau
+from .landscapes.holder import Holder
+
+from .utils import set_all_seed
+from .utils import fixed_random_seed
+from .utils import fixed_numpy_seed
+from .utils import fixed_torch_seed
+from .utils import fixed_all_seed
 
 
 __all__ = [
@@ -31,9 +36,6 @@ __all__ = [
     'tang',
     'holder',
     'submanifold_rosenbrock',
-    # 'nonlinear_submanifold',
-    # 'optimal_control',
-    # 'NNhyperparams'
     
     "FunctionV2",
     "Sphere",
@@ -44,5 +46,11 @@ __all__ = [
     "StyblinskyTang",
     "Levi",
     "Himmelblau",
-    "Holder"
+    "Holder",
+
+    'set_all_seed',
+    'fixed_random_seed',
+    'fixed_numpy_seed',
+    'fixed_torch_seed',
+    'fixed_all_seed',
 ]
