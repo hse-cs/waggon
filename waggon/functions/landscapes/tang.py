@@ -16,8 +16,8 @@ class StyblinskyTang(FunctionV2):
         self.f_min = 0.0
     
     def func(self, x: np.ndarray) -> np.ndarray:
-        return np.sum(
-            (x ** 4) - 16.0 * (x ** 2) + 5.0 * x + 39.16617 * self.dim,
+        return 0.5 * np.sum(
+            (x ** 4) - 16.0 * (x ** 2) + 5.0 * x,
             axis=-1,
             keepdims=True
-        )
+        )  + 39.16617 * self.dim
