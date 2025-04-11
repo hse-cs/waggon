@@ -119,6 +119,22 @@ class holder(Function):
 class submanifold_rosenbrock(Function):
     """
     Submanifold Rosenbrock problem function
+
+    Parameters
+    ----------
+    dim: int, default 20
+        Dimensionality of the function
+    sub_dim: int, default 8
+        Sub-dimensionality of the function
+    seed: int | None, default None
+        Seed for mapping matrix generation
+    **kwargs
+        Arguments passed to Function base class
+    
+    Notes
+    -----
+    In case `seed=None`, NumPy automatically generates a seed
+    based on the system entropy source.
     """
     def __init__(self, dim=20, sub_dim=8, seed=None, **kwargs):
         super().__init__(**kwargs)
@@ -156,10 +172,10 @@ class tang(Function):
         self.name     = f'Styblinski-Tang ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
 
-        self.f        = lambda x: np.sum(
-            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x + 39.16617 * self.dim, 
+        self.f        = lambda x: 0.5 * np.sum(
+            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x, 
             axis=-1, 
-        )
+        ) + 39.16617 * self.dim
         self.f_min    = 0.0
         self.sigma    = lambda x: np.abs(x[:, 0] * np.sin(x[:, 1] - (-2.903534))) if 'sigma' in kwargs else lambda x: 1e-1
     

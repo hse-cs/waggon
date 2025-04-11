@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, ticker
 
 from .base import Optimiser
-from .utils import create_dir
+from ._utils import create_dir
 
 class SurrogateOptimiser(Optimiser):
     '''

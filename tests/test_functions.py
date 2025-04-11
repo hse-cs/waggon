@@ -20,6 +20,7 @@ from waggon.functions import Holder
 from utils import check_func_call_dims
 from utils import check_func_sample_dims
 from utils import check_func_log_transform
+from utils import check_func_min
 
 
 def _test_func(func, func_log):
@@ -30,7 +31,6 @@ def _test_func(func, func_log):
     check_func_call_dims(func, func_log, is_old_api)
     check_func_sample_dims(func, func_log, is_old_api)
     check_func_log_transform(func, func_log, is_old_api)
-
 
 @pytest.mark.parametrize(
     "func, func_log", [
@@ -141,6 +141,7 @@ def test_submanifold(func, func_log):
 )
 def test_tang(func, func_log):
     _test_func(func, func_log)
+    check_func_min(func, atol=1e-4)
 
 
 @pytest.mark.parametrize(

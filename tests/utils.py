@@ -61,3 +61,8 @@ def check_func_log_transform(func, func_log, is_old_api=False):
     np.testing.assert_allclose(func_log(x1), np.log(_call_method(x1) + log_eps))
     np.testing.assert_allclose(func_log(x2), np.log(_call_method(x2) + log_eps))
     np.testing.assert_allclose(func_log(x3), np.log(_call_method(x3) + log_eps))
+
+
+def check_func_min(func, atol=1e-5):
+    y_min = func(func.glob_min)
+    np.testing.assert_allclose(y_min, func.f_min, atol=atol)
