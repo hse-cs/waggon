@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg
 from ..base import FunctionV2
-from ...utils.utils import fixed_numpy_seed
+from ..utils import fixed_numpy_seed
 
 
 class SubmanifoldRosenbrock(FunctionV2):

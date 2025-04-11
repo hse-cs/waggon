@@ -1,12 +1,13 @@
 import os
 import pickle
-import contextlib
-import random
 
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+# from waggon.functions import FunctionV2 #creates circular import
+from waggon.optim import Optimiser
+from waggon.optim import SurrogateOptimiser
 
 
 def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_results', exp_transform=True):
@@ -83,96 +84,40 @@ def plot_results(base_dir='test_results', figsize=(16, 8), **kwargs):
     fig.savefig('plots/res.jpeg', format='jpeg', dpi=200, bbox_inches='tight')
 
 
-@contextlib.contextmanager
-def fixed_random_seed(seed: int):
-    """
-    Context manager to set specified seed for random package
+# def plot_func_2d(func, fig, ax, x_range, y_range, name=None, nx=150, ny=150, norm=None):
+#     """
+#     Plot colormap for 2-dimensional function
+#     """
+#     assert func.dim == 2
 
-    Parameters
-    ----------
-    seed: int
-        The seed value to set
-    """
-    state = random.getstate()
-    random.seed(seed)
-    try:
-        yield
-    finally:
-        random.setstate(state)
+#     x_min, x_max = x_range
+#     y_min, y_max = y_range
 
+#     x_arr = np.linspace(x_min, x_max, nx)
+#     y_arr = np.linspace(y_min, y_max, ny)
 
-@contextlib.contextmanager
-def fixed_numpy_seed(seed: int):
-    """
-    Context manager to set specified seed for NumPy
+#     xs, ys = np.meshgrid(x_arr, y_arr)
 
-    Parameters
-    ----------
-    seed: int
-        The seed value to set
-    """
-    state = np.random.get_state()
-    np.random.seed(seed)
-    try:
-        yield
-    finally:
-        np.random.set_state(state)
+#     x_inp = np.zeros((ny * nx, 2))
+#     x_inp[:, 0] = xs.flatten()
+#     x_inp[:, 1] = ys.flatten()
 
+#     z_out = func(x_inp)
+#     z_out = z_out.squeeze(1) if z_out.ndim == 2 else z_out
+#     z_out = z_out.reshape((nx, ny), order='F')
+#     z_out = np.transpose(z_out)
 
-@contextlib.contextmanager
-def fixed_torch_seed(seed: int):
-    """
-    Context manager to set specified for Torch
-    """
-    state = torch.get_rng_state()
-    cuda_state = torch.cuda.get_rng_state_all()
+#     mesh = ax.pcolormesh(x_arr, y_arr, z_out, norm=norm)
+#     cbar = fig.colorbar(mesh, ax=ax)
 
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+#     glob_min = func.glob_min.reshape(-1, 1)
+#     ax.scatter(func.glob_min[:, 0], func.glob_min[:, 1], color='red', s=8)
 
-    try:
-        yield
-    finally:
-        torch.set_rng_state(state)
-        torch.cuda.set_rng_state_all(cuda_state)
+#     if name is None:
+#         title_name = f"{func.name} (new API)" if isinstance(func, FunctionV2) else f"{func.name} (old API)"
+#     else:
+#         title_name = name
 
-
-def set_all_seed(seed: int):
-    """
-    Set specified seed for random, numpy, torch packages
-
-    Parameters
-    ----------
-    seed: int
-        The seed value to set
-    """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-
-@contextlib.contextmanager
-def fixed_all_seed(seed: int):
-    """
-    Context manager to set specified seed for random, numpy and torch packages
-
-    Parameters
-    ----------
-    seed: int
-        The seed value to set
-    """
-    random_state = random.getstate()
-    numpy_state = np.random.get_state()
-    torch_state = torch.get_rng_state()
-    torch_cuda_state = torch.cuda.get_rng_state_all()
-
-    set_all_seed(seed)
-
-    try:
-        yield
-    finally:
-        random.setstate(random_state)
-        np.random.set_state(numpy_state)
-        torch.set_rng_state(torch_state)
-        torch.cuda.set_rng_state_all(torch_cuda_state)
+#     ax.set_title(title_name)    
+#     ax.set_xlabel('x')
+#     ax.set_ylabel('y')

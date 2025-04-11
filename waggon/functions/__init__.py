@@ -1,5 +1,4 @@
 from .base import Function
-# from .nn_hyperparams import NNhyperparams
 from .test_functions import three_hump_camel 
 from .test_functions import rosenbrock 
 from .test_functions import ackley
@@ -19,6 +18,12 @@ from .landscapes.tang import StyblinskyTang
 from .landscapes.levi import Levi
 from .landscapes.himmelblau import Himmelblau
 from .landscapes.holder import Holder
+
+from .utils import set_all_seed
+from .utils import fixed_random_seed
+from .utils import fixed_numpy_seed
+from .utils import fixed_torch_seed
+from .utils import fixed_all_seed
 
 
 __all__ = [
@@ -41,5 +46,11 @@ __all__ = [
     "StyblinskyTang",
     "Levi",
     "Himmelblau",
-    "Holder"
+    "Holder",
+
+    'set_all_seed',
+    'fixed_random_seed',
+    'fixed_numpy_seed',
+    'fixed_torch_seed',
+    'fixed_all_seed',
 ]

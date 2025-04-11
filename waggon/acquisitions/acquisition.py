@@ -42,7 +42,7 @@ class EI(Acquisition):
         EI = z_ * z_prob + std * z_dens
 
         if self.log_transform:
-            return -1.0 * np.log(EI + 1e-22)
+            return -1.0 * np.log(EI + 1e-8)
         else:
             return -1.0 * EI
 

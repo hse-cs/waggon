@@ -66,18 +66,20 @@ class SurrogateOptimiser(Optimiser):
     def __init__(self, func, surr, acqf, **kwargs):
         super(SurrogateOptimiser, self).__init__(**kwargs)
         
-        self.func           = func
-        self.surr           = surr
-        self.acqf           = acqf
-        self.num_opt        = kwargs['num_opt'] if 'num_opt' in kwargs else True
-        self.num_opt_start  = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
-        self.num_opt_disp   = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
-        self.tol            = kwargs['tol'] if 'tol' in kwargs else 1e-6
-        self.eq_cons        = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
-        self.ineq_cons      = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 22
-        self.surr.verbose   = self.verbose
-        self.candidates     = None
+        self.func               = func
+        self.surr               = surr
+        self.acqf               = acqf
+        self.num_opt            = kwargs['num_opt'] if 'num_opt' in kwargs else True
+        self.num_opt_start      = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
+        self.num_opt_disp       = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
+        self.tol                = kwargs['tol'] if 'tol' in kwargs else 1e-6
+        self.eq_cons            = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
+        self.ineq_cons          = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
+        self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 22
+        self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 10201
+        self.jitter             = kwargs['jitter'] if 'jitter' in kwargs else 1e0
+        self.surr.verbose       = self.verbose
+        self.candidates         = None
 
     def numerical_search(self, x0=None):
         '''
@@ -90,14 +92,14 @@ class SurrogateOptimiser(Optimiser):
         '''
         best_x = None
         best_acqf = np.inf
-
+        
         if (x0 is None) and (self.num_opt_start != 'grid'):
             candidates = self.create_candidates()
         elif self.num_opt_start == 'random':
             candidates = np.array(self.n_candidates * [x0])
             candidates += np.random.normal(0, self.eps, candidates.shape)
         elif self.num_opt_start == 'grid':
-            inter_conds = self.create_candidates(N=10201)
+            inter_conds = self.create_candidates(N=self.num_opt_candidates)
             ei = self.acqf(inter_conds)
             try:
                 ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
@@ -182,14 +184,13 @@ class SurrogateOptimiser(Optimiser):
                     x0 = X[np.argmin(y)]
                 
                 next_x = self.numerical_search(x0=x0)
-
-                if np.sum(np.any(np.unique(X, axis=0) == next_x, axis=1)): # to prevent singular DGP covar
-                    next_x = self.numerical_search(x0=x0)
             else:
                 next_x = self.direct_search()
             
-            if next_x not in X:
-                next_xs.append(next_x)
+            if next_x in X:
+                next_x += np.random.normal(0, self.jitter, 1)
+            
+            next_xs.append(next_x)
         
         return np.array(next_xs)
     

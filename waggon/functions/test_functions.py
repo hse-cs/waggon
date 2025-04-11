@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg
 
 from .base import Function
-from ..utils.utils import fixed_numpy_seed
+from .utils import fixed_numpy_seed
 
 
 class three_hump_camel(Function):

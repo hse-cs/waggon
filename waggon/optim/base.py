@@ -45,7 +45,7 @@ class Optimiser(object):
             Whether orthogonal Latin hypercube sampling (LHS) is used for choosing candidate points.
             If False, simple LHS is used.
 
-        lhs_seed : int, default = None
+        seed : int, default = None
             Controls the randomness of candidates sampled via (orthogonal) LHS.
         
         verbose : int, default = 1
@@ -62,7 +62,7 @@ class Optimiser(object):
         self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
         self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
-        self.lhs_seed       = kwargs['lhs_seed'] if 'lhs_seed' in kwargs else None
+        self.seed           = kwargs['seed'] if 'seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
@@ -106,7 +106,7 @@ class Optimiser(object):
         else:
             strength = 1
 
-        lhs_       = qmc.LatinHypercube(d=self.func.domain.shape[0], scramble=True, strength=strength, seed=self.lhs_seed)
+        lhs_       = qmc.LatinHypercube(d=self.func.domain.shape[0], scramble=True, strength=strength, seed=self.seed)
         candidates = lhs_.random(N)
         candidates = qmc.scale(candidates, self.func.domain[:, 0], self.func.domain[:, 1])
         return candidates
