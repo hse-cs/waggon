@@ -163,7 +163,7 @@ class WGAN_GP(GenSurrogate):
             if self.verbose > 1:
                 fit_loop.set_description(f"G loss: {G_loss:.4f}, D loss: {D_loss:.4f}")
             
-            if self.scheduler:
+            if (self.scheduler):
                 G_scheduler.step()
                 D_scheduler.step()
         

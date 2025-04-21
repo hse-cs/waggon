@@ -8,8 +8,8 @@ from .baselines.protes import ProtesOptimiser
 __all__ = [
     'Optimiser',
     'SurrogateOptimiser',
-    'BarycentreSurrogateOptimiser'
-    'EnsembleBarycentreSurrogateOptimiser'
+    'BarycentreSurrogateOptimiser',
+    'EnsembleBarycentreSurrogateOptimiser',
     'DifferentialEvolutionOptimizer',
     'ProtesOptimiser'
 ]
