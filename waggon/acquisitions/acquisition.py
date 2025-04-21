@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import expit
 from scipy.spatial.distance import cdist
 from scipy.stats import norm, energy_distance as Wdist
 
@@ -6,7 +7,7 @@ from .base import Acquisition
 
 
 class EI(Acquisition):
-    def __init__(self, log_transform=False):
+    def __init__(self, log_transform=True):
         '''
         Expected Improvement (EI) acquisition function.
         '''
@@ -308,3 +309,76 @@ class KG(Acquisition):
         kg = std * (z * norm.cdf(z) + norm.pdf(z))
 
         return kg
+
+
+class BarycentreEI(Acquisition):
+    def __init__(self, wf, ws, wp=0.8, log_transform=True):
+        '''
+        Expected Improvement (EI) acquisition function.
+        '''
+        super(BarycentreEI, self).__init__()
+        
+        self.name = 'BarycentreEI'
+        self.log_transform = log_transform
+        self.verbose = 1
+        self.wf = wf
+        self.ws = ws
+        self.wp = wp
+    
+    def wb(self, mu, std, normalise=True):
+        
+        if self.wf == 'u':
+            w = np.ones(mu.shape[0])
+        elif self.wf == 'l':
+            w = np.linspace(1e-2, 1, mu.shape[0])
+        elif self.wf == 'c':
+            w = np.sin(np.linspace(1e-2, 1.57, mu.shape[0]))**2
+        elif self.wf == 's':
+            w = expit(np.linspace(-3, 3, mu.shape[0]))
+        elif self.wf == 'e':
+            w = np.exp(np.linspace(-2, 2, mu.shape[0]))
+        
+        if normalise:
+            w /= np.sum(w)
+        
+        if len(w.shape) == 1:
+            w = w.reshape(-1, 1)
+        
+        return np.sum(w * mu, axis=0), np.sum(w * std, axis=0)
+        
+    def __call__(self, x, **kwargs):
+        
+        if len(x.shape) == 1:
+            x = x.reshape(1, -1)
+        
+        mu_, std_ = [], []
+
+        for surr in self.surr:
+            pred = surr.predict(x, **kwargs)
+            mu_.append(pred[0])
+            std_.append(pred[1])
+        
+        mu, std = np.array(mu_), np.array(std_)
+        
+        N = int(mu.shape[0] * self.wp)
+        
+        if self.ws == 'h':
+            mu = mu[-N:]
+            std = std[-N:]
+        elif self.ws == 'v':
+            ids = np.argsort(mu, axis=0)[:N, :]
+            mu = np.take_along_axis(mu, ids, axis=0)
+            std = np.take_along_axis(std, ids, axis=0)
+        
+        mu, std = self.wb(mu, std)
+        
+        z_ = np.min(self.y) - mu
+        z  = z_ / (std + 1e-8)
+        z_prob, z_dens = norm.cdf(z), norm.pdf(z)
+
+        EI = z_ * z_prob + std * z_dens
+        
+        if self.log_transform:
+            return -1.0 * np.log(EI + 1e-8)
+        else:
+            return -1.0 * EI

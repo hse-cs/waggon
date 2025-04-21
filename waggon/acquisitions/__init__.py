@@ -1,5 +1,5 @@
 from .base import Acquisition
-from .acquisition import EI, CB, WU, WU_IDW, PI, ES, KG
+from .acquisition import EI, CB, WU, WU_IDW, PI, ES, KG, BarycentreEI
 
 __all__ = [
     'Acquisition',
@@ -9,5 +9,6 @@ __all__ = [
     'WU_IDW',
     'PI',
     'ES',
-    'KG'
+    'KG',
+    'BarycentreEI'
 ]

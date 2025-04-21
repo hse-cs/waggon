@@ -7,7 +7,7 @@ docs/.DS_Store
 tests/.DS_Store
 waggon/acquisitions/.DS_Store
 waggon/functions/.DS_Store
-waggon/functions/landscapes/
+# waggon/functions/landscapes/
 waggon/optim/.DS_Store
 waggon/surrogates/.DS_Store
 waggon/utils/.DS_Store
