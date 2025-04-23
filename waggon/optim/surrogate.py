@@ -75,11 +75,19 @@ class SurrogateOptimiser(Optimiser):
         self.tol                = kwargs['tol'] if 'tol' in kwargs else 1e-6
         self.eq_cons            = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons          = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 22
+        self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 128
         self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 10201
         self.jitter             = kwargs['jitter'] if 'jitter' in kwargs else 1e0
-        self.surr.verbose       = self.verbose
-        self.candidates         = None
+        
+        if not self.num_opt:
+            self.candidates     = None
+        
+        if type(self.surr) == list:
+            for s in self.surr:
+                s.verbose = self.verbose
+        else:
+            self.surr.verbose   = self.verbose
+
 
     def numerical_search(self, x0=None):
         '''
@@ -250,3 +258,4 @@ class SurrogateOptimiser(Optimiser):
             plt.tight_layout()
         
         plt.show()
+

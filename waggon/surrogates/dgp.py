@@ -13,6 +13,8 @@ from gpytorch.distributions import MultivariateNormal
 from gpytorch.mlls import VariationalELBO, DeepApproximateMLL
 from gpytorch.variational import CholeskyVariationalDistribution, VariationalStrategy
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.set_default_device(device)
 
 class DGP(Surrogate):
     def __init__(self, **kwargs):
@@ -20,13 +22,16 @@ class DGP(Surrogate):
 
         self.name         = 'DGP'
         self.model        = kwargs['model'] if 'model' in kwargs else None
-        self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 100
+        self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 200
         self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 32
-        self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 16
+        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 64
+        self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 128
+        self.actf         = kwargs['actf'] if 'actf' in kwargs else torch.tanh
+        self.means        = kwargs['means'] if 'means' in kwargs else ['linear', 'linear']
+        self.scale        = kwargs['scale'] if 'scale' in kwargs else True
 
-        self.gen = torch.Generator()
+        self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
     
     def fit(self, X, y):
@@ -34,12 +39,21 @@ class DGP(Surrogate):
         del self.model
         gc.collect()
 
-        self.model = DeepGPModel(X.shape[1], y.shape[1],
-                                 hidden_size=self.hidden_size,
-                                 num_inducing=self.num_inducing, gen=self.gen)
+        self.model = DeepGPModel(
+            in_dim       = X.shape[1],
+            hidden_size  = self.hidden_size,
+            num_inducing = self.num_inducing,
+            actf         = self.actf,
+            means        = self.means,
+            gen          = self.gen
+        )
         
         X = torch.tensor(X).float()
         y = torch.tensor(y).float().squeeze()
+        
+        if self.scale:
+            self.y_mu, self.y_std = y.mean(), y.std()
+            y = (y - self.y_mu) / (self.y_std + 1e-8)
         
         self.model.train()
         self.model.likelihood.train()
@@ -69,9 +83,15 @@ class DGP(Surrogate):
         self.model.eval()
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             observed_pred = self.model.likelihood(self.model(torch.tensor(X).float()))
-            mean = observed_pred.mean
-            std = torch.sqrt(observed_pred.variance)
-        return mean[0, 0, :].numpy(), std[0, 0, :].numpy()
+            mean = observed_pred.mean[0, 0, :]
+            std = torch.sqrt(observed_pred.variance)[0, 0, :]
+        
+        if self.scale:
+            # print(mean.shape, std.shape, self.y_mu.shape, self.y_std.shape)
+            mean += self.y_mu
+            std *= self.y_std
+        
+        return mean.numpy(), std.numpy()
 
 
 class SingleLayerGP(AbstractVariationalGP):
@@ -126,19 +146,22 @@ class DeepLayer(DeepGPLayer):
 
 
 class DeepGPModel(DeepGP):
-    def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep'], gen=None):
+    def __init__(self, in_dim, out_dim=None, hidden_size=16, num_inducing=22, layers=['deep', 'deep'], means=['constant', 'constant'], actf=torch.tanh, gen=None):
         super().__init__()
-
+        
+        self.actf = actf
+        
         inducing_points = torch.rand(num_inducing, in_dim, generator=gen)
         output_inducing = torch.rand(num_inducing, hidden_size if layers[1]=='deep' else 1, generator=gen)
-
-        self.input_layer = DeepLayer(in_dim, hidden_size, inducing_points, mean_type='linear') if layers[0]=='deep' else SingleLayerGP(inducing_points)
-        self.output_layer =  DeepLayer(hidden_size, None, output_inducing, mean_type='linear') if layers[1]=='deep' else SingleLayerGP(output_inducing)
+        
+        self.input_layer = DeepLayer(in_dim, hidden_size, inducing_points, mean_type=means[0]) if layers[0]=='deep' else SingleLayerGP(inducing_points)
+        self.output_layer =  DeepLayer(hidden_size, None, output_inducing, mean_type=means[1]) if layers[1]=='deep' else SingleLayerGP(output_inducing)
         
         self.likelihood = GaussianLikelihood()
 
     def forward(self, x):
         hidden_rep = self.input_layer(x).mean
-        hidden_rep = torch.tanh(hidden_rep)
+        if self.actf is not None:
+            hidden_rep = self.actf(hidden_rep)
         output = self.output_layer(hidden_rep)
         return output
