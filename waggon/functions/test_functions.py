@@ -157,9 +157,10 @@ class tang(Function):
         self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534
 
         self.f        = lambda x: np.sum(
-            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x + 39.16617 * self.dim, 
+            x ** 4.0 - 16.0 * x ** 2.0 + 5.0 * x, 
             axis=-1, 
-        )
+        ) + 39.16617 * self.dim
+        
         self.f_min    = 0.0
         self.sigma    = lambda x: np.abs(x[:, 0] * np.sin(x[:, 1] - (-2.903534))) if 'sigma' in kwargs else lambda x: 1e-1
     
