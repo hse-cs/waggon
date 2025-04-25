@@ -20,10 +20,15 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
             gc.collect()
 
         preds = []
+
+        N = int(self.surr_n_epochs * self.acqf.wp)
+
+        self.surr.n_epochs = N
+        self.surr.fit(X, y, epoch=0)
         
-        for i in range(self.surr_n_epochs):
+        for i in range(self.surr_n_epochs - N):
             self.surr.n_epochs = 1
-            self.surr.fit(X, y)
+            self.surr.fit(X, y, epoch=1)
             preds.append(self.surr)
         
         self.acqf.surr = preds

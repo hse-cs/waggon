@@ -34,19 +34,20 @@ class DGP(Surrogate):
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
     
-    def fit(self, X, y):
+    def fit(self, X, y, epoch=None):
         
-        del self.model
-        gc.collect()
+        if not epoch:
+            del self.model
+            gc.collect()
 
-        self.model = DeepGPModel(
-            in_dim       = X.shape[1],
-            hidden_size  = self.hidden_size,
-            num_inducing = self.num_inducing,
-            actf         = self.actf,
-            means        = self.means,
-            gen          = self.gen
-        )
+            self.model = DeepGPModel(
+                in_dim       = X.shape[1],
+                hidden_size  = self.hidden_size,
+                num_inducing = self.num_inducing,
+                actf         = self.actf,
+                means        = self.means,
+                gen          = self.gen
+            )
         
         X = torch.tensor(X).float()
         y = torch.tensor(y).float().squeeze()
@@ -91,7 +92,7 @@ class DGP(Surrogate):
             mean += self.y_mu
             std *= self.y_std
         
-        return mean.numpy(), std.numpy()
+        return mean.detach().numpy(), std.detach().numpy()
 
 
 class SingleLayerGP(AbstractVariationalGP):

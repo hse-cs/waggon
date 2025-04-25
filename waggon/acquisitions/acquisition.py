@@ -3,6 +3,8 @@ from scipy.special import expit
 from scipy.spatial.distance import cdist
 from scipy.stats import norm, energy_distance as Wdist
 
+import multiprocessing
+
 from .base import Acquisition
 
 
@@ -312,7 +314,7 @@ class KG(Acquisition):
 
 
 class BarycentreEI(Acquisition):
-    def __init__(self, wf, ws, wp=0.8, log_transform=True):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True):
         '''
         Expected Improvement (EI) acquisition function.
         '''
@@ -324,9 +326,9 @@ class BarycentreEI(Acquisition):
         self.wf = wf
         self.ws = ws
         self.wp = wp
-    
+
     def wb(self, mu, std, normalise=True):
-        
+
         if self.wf == 'u':
             w = np.ones(mu.shape[0])
         elif self.wf == 'l':
@@ -360,17 +362,19 @@ class BarycentreEI(Acquisition):
         
         mu, std = np.array(mu_), np.array(std_)
         
-        N = int(mu.shape[0] * self.wp)
+        # N = int(mu.shape[0] * self.wp)
         
-        if self.ws == 'h':
-            mu = mu[-N:]
-            std = std[-N:]
-        elif self.ws == 'v':
-            ids = np.argsort(mu, axis=0)[:N, :]
-            mu = np.take_along_axis(mu, ids, axis=0)
-            std = np.take_along_axis(std, ids, axis=0)
+        # if self.ws == 'h':
+        #     mu = mu
+        #     std = std
+        # elif self.ws == 'v':
+        #     ids = np.argsort(mu, axis=0)[:N, :]
+        #     mu = np.take_along_axis(mu, ids, axis=0)
+        #     std = np.take_along_axis(std, ids, axis=0)
         
         mu, std = self.wb(mu, std)
+        # mu = np.mean(mu)
+        # std = np.mean(std)
         
         z_ = np.min(self.y) - mu
         z  = z_ / (std + 1e-8)
