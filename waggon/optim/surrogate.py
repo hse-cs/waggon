@@ -6,6 +6,8 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from matplotlib import cm, ticker
 
+from joblib import Parallel, delayed
+
 from .base import Optimiser
 from .utils import create_dir
 
@@ -78,6 +80,7 @@ class SurrogateOptimiser(Optimiser):
         self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 128
         self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 10201
         self.jitter             = kwargs['jitter'] if 'jitter' in kwargs else 1e0
+        self.parallel           = kwargs['parallel'] if 'parallel' in kwargs else 4
         
         if not self.num_opt:
             self.candidates     = None
@@ -87,7 +90,10 @@ class SurrogateOptimiser(Optimiser):
                 s.verbose = self.verbose
         else:
             self.surr.verbose   = self.verbose
-
+    
+    def run_lbfgsb(self, x0):
+        opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
+        return opt_res.fun, opt_res.x
 
     def numerical_search(self, x0=None):
         '''
@@ -98,8 +104,7 @@ class SurrogateOptimiser(Optimiser):
         best_x : np.array of shape (func.dim,)
             Predicted optimum of the acquisition function.
         '''
-        best_x = None
-        best_acqf = np.inf
+        
         
         if (x0 is None) and (self.num_opt_start != 'grid'):
             candidates = self.create_candidates()
@@ -116,19 +121,34 @@ class SurrogateOptimiser(Optimiser):
                 ei = ei.squeeze()
                 ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
                 candidates = np.take_along_axis(inter_conds, ids, axis=0)
-
-        for x0 in candidates:
-            
-            if (self.eq_cons is None) and (self.ineq_cons is None):
-                opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
-            else:
-                opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
-            
-            if opt_res.fun < best_acqf:
-                best_acqf = opt_res.fun
-                best_x = opt_res.x
         
-        return best_x
+        if self.parallel in [0, 1]:
+
+            best_x = None
+            best_acqf = np.inf
+
+            for x0 in candidates:
+                
+                if (self.eq_cons is None) and (self.ineq_cons is None):
+                    opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
+                else:
+                    opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
+                
+                if opt_res.fun < best_acqf:
+                    best_acqf = opt_res.fun
+                    best_x = opt_res.x
+            
+            return best_x
+        
+        else:
+
+            r = Parallel(n_jobs=4, prefer="threads")(delayed(self.run_lbfgsb)(x0) for x0 in candidates)
+            f, x = zip(*r)
+            f, x = np.array(f), np.array(x)
+
+            return x[np.argmin(f)]
+        
+        
     
     def direct_search(self):
         '''

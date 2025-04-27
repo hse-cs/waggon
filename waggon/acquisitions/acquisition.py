@@ -3,7 +3,10 @@ from scipy.special import expit
 from scipy.spatial.distance import cdist
 from scipy.stats import norm, energy_distance as Wdist
 
+from joblib import Parallel, delayed
+
 import multiprocessing
+multiprocessing.set_start_method('spawn')
 
 from .base import Acquisition
 
@@ -314,7 +317,7 @@ class KG(Acquisition):
 
 
 class BarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=False):
         '''
         Expected Improvement (EI) acquisition function.
         '''
@@ -326,56 +329,46 @@ class BarycentreEI(Acquisition):
         self.wf = wf
         self.ws = ws
         self.wp = wp
-
-    def wb(self, mu, std, normalise=True):
-
-        if self.wf == 'u':
-            w = np.ones(mu.shape[0])
-        elif self.wf == 'l':
-            w = np.linspace(1e-2, 1, mu.shape[0])
-        elif self.wf == 'c':
-            w = np.sin(np.linspace(1e-2, 1.57, mu.shape[0]))**2
-        elif self.wf == 's':
-            w = expit(np.linspace(-3, 3, mu.shape[0]))
-        elif self.wf == 'e':
-            w = np.exp(np.linspace(-2, 2, mu.shape[0]))
-        
-        if normalise:
-            w /= np.sum(w)
-        
-        if len(w.shape) == 1:
-            w = w.reshape(-1, 1)
-        
-        return np.sum(w * mu, axis=0), np.sum(w * std, axis=0)
+        self.parallel = parallel
+    
+    def __single_pred(self, surr):
+        return surr.predict(self.x)
         
     def __call__(self, x, **kwargs):
         
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
-        
-        mu_, std_ = [], []
 
-        for surr in self.surr:
-            pred = surr.predict(x, **kwargs)
-            mu_.append(pred[0])
-            std_.append(pred[1])
+        if self.parallel:
+            self.x = x
+            r = Parallel(n_jobs=4, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
+            r = np.concatenate(r)
+            mu, std = r[:, 0], r[:, 1]
+
+        else:
+            mu, std = [], []
+            for surr in self.surr:
+                pred = surr.predict(x, **kwargs)
+                mu.append(pred[0])
+                std.append(pred[1])
         
-        mu, std = np.array(mu_), np.array(std_)
+        mu, std = np.array(mu), np.array(std)
         
-        # N = int(mu.shape[0] * self.wp)
+        if self.wf == 'l':
+            w = np.linspace(1e-2, 1, mu.shape[1])
+        elif self.wf == 'c':
+            w = np.sin(np.linspace(1e-2, 1.57, mu.shape[1]))**2
+        elif self.wf == 's':
+            w = expit(np.linspace(-3, 3, mu.shape[1]))
+        elif self.wf == 'e':
+            w = np.exp(np.linspace(-2, 2, mu.shape[1]))
+        else:
+            w = np.ones(mu.shape[1])
         
-        # if self.ws == 'h':
-        #     mu = mu
-        #     std = std
-        # elif self.ws == 'v':
-        #     ids = np.argsort(mu, axis=0)[:N, :]
-        #     mu = np.take_along_axis(mu, ids, axis=0)
-        #     std = np.take_along_axis(std, ids, axis=0)
+        w /= np.sum(w)
         
-        mu, std = self.wb(mu, std)
-        # mu = np.mean(mu)
-        # std = np.mean(std)
-        
+        mu, std = np.sum(w * mu, axis=0), np.sum(w * std, axis=0)
+
         z_ = np.min(self.y) - mu
         z  = z_ / (std + 1e-8)
         z_prob, z_dens = norm.cdf(z), norm.pdf(z)
@@ -383,6 +376,6 @@ class BarycentreEI(Acquisition):
         EI = z_ * z_prob + std * z_dens
         
         if self.log_transform:
-            return -1.0 * np.log(EI + 1e-8)
+            return -1.0 * np.log(EI + 1e-6)
         else:
             return -1.0 * EI
