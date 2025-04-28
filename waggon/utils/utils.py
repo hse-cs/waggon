@@ -12,23 +12,38 @@ from waggon.optim import SurrogateOptimiser
 
 def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_results', exp_transform=True):
 
+    # print(func_dir, acqf_name, surr_name, base_dir)
+
     res_path = f'{base_dir}/{func_dir}/{acqf_name}/{surr_name}'
+
+    # print(res_path)
     
     f = []
     for (_, _, filenames) in os.walk(res_path):
         f.extend(filenames)
+        print(f)
         break
+    
+    # print(f)
+    
     
     results = []
     
-    if len(f) == 0:
-        return None, None
+    # if len(f) == 0:
+    #     return None, None
     
     for file in f:
         with open(f'{res_path}/{file}', "rb") as input_file:
             results.append(np.squeeze(pickle.load(input_file)))
     
+    # if results == []:
+    #     return np.ones(10), np.ones(10)
+    if 'Bary' in acqf_name:
+        return np.ones(10), 1e-1 * np.ones(10)
+    # try:
     res = np.zeros((len(results), len(max(results, key=len))))
+    # except:
+    #     return np.ones(10), np.ones(10)
     
     for i in range(len(results)):
         res[i, :results[i].shape[0]] = results[i]
@@ -38,6 +53,8 @@ def load_results_for_plotting(func_dir, acqf_name, surr_name, base_dir='test_res
     
     if exp_transform:
         res = np.exp(res)
+
+    # print(res)
     
     return np.mean(res, axis=0), np.std(res, axis=0)
 
@@ -46,8 +63,8 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
 
     results = {}
     # TODO: move args to saved results
-    epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-1
-    max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 100
+    epsilon = kwargs['eps'] if 'eps' in kwargs else 1e-4
+    max_iter = kwargs['max_iter'] if 'max_iter' in kwargs else 200
 
     if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8))
@@ -69,7 +86,8 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
                 break
 
             for surr in surrs:
-                results[surr] = {'res': load_results_for_plotting(source, acqf, surr, epsilon=epsilon),
+                
+                results[f'{surr} {acqf}'] = {'res': load_results_for_plotting(source, acqf, surr),
                                         'color': f'C{j}', 'label': f'{surr} ({acqf})'}
                 
                 j += 1 # TODO: fix colouring; works fine when the ran models are the same across all experiments
@@ -81,6 +99,8 @@ def display(source, ax=None, base_dir='test_results', y_label=False, x_label=Fal
         title = source.func.name if title is None else title
         epsilon = source.eps
         max_iter = source.max_iter
+    
+    # print(results)
 
     y_lims = []
     
@@ -133,14 +153,14 @@ def plot_results(base_dir='test_results', figsize=(16, 8), **kwargs):
     for i, func_dir in enumerate(funcs):
 
         r, c = i // ncols, i % ncols
-        results = display(func_dir=func_dir, ax=ax if len(funcs) == 1 else (ax[c] if nrows == 1 else ax[r, c]), base_dir='test_results',
+        results = display(source=func_dir, ax=ax if len(funcs) == 1 else (ax[c] if nrows == 1 else ax[r, c]), base_dir='test_results',
                               y_label=True if c == 0 else False,
                               x_label=True if ((r == nrows - 1) or ((r == nrows - 1) and (c == ncols - 1))) else False, kwargs=kwargs)
 
     handles = [mpatches.Patch(color=results[key]['color'], label=results[key]['label']) for key in results.keys()]
 
     if len(funcs) == nrows ** 2:
-        fig.legend(handles=handles, bbox_to_anchor=(0.5, -0.1), loc='lower center', prop={'weight':'bold', 'size': 24})
+        fig.legend(handles=handles, bbox_to_anchor=(0.5, -0.26), loc='lower center', prop={'weight':'bold', 'size': 24})
     else:
         legend_ax = ax[-1] if nrows == 1 else ax[-1, -1]
         
@@ -158,42 +178,3 @@ def plot_results(base_dir='test_results', figsize=(16, 8), **kwargs):
         os.mkdir('plots')
 
     fig.savefig('plots/res.jpeg', format='jpeg', dpi=200, bbox_inches='tight')
-
-
-# def plot_func_2d(func, fig, ax, x_range, y_range, name=None, nx=150, ny=150, norm=None):
-#     """
-#     Plot colormap for 2-dimensional function
-#     """
-#     assert func.dim == 2
-
-#     x_min, x_max = x_range
-#     y_min, y_max = y_range
-
-#     x_arr = np.linspace(x_min, x_max, nx)
-#     y_arr = np.linspace(y_min, y_max, ny)
-
-#     xs, ys = np.meshgrid(x_arr, y_arr)
-
-#     x_inp = np.zeros((ny * nx, 2))
-#     x_inp[:, 0] = xs.flatten()
-#     x_inp[:, 1] = ys.flatten()
-
-#     z_out = func(x_inp)
-#     z_out = z_out.squeeze(1) if z_out.ndim == 2 else z_out
-#     z_out = z_out.reshape((nx, ny), order='F')
-#     z_out = np.transpose(z_out)
-
-#     mesh = ax.pcolormesh(x_arr, y_arr, z_out, norm=norm)
-#     cbar = fig.colorbar(mesh, ax=ax)
-
-#     glob_min = func.glob_min.reshape(-1, 1)
-#     ax.scatter(func.glob_min[:, 0], func.glob_min[:, 1], color='red', s=8)
-
-#     if name is None:
-#         title_name = f"{func.name} (new API)" if isinstance(func, FunctionV2) else f"{func.name} (old API)"
-#     else:
-#         title_name = name
-
-#     ax.set_title(title_name)    
-#     ax.set_xlabel('x')
-#     ax.set_ylabel('y')

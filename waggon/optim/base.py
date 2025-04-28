@@ -59,29 +59,35 @@ class Optimiser(object):
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-4
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
-        self.fix_candidates = kwargs['fix_candidates'] if 'fix_candidates' in kwargs else True
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 1
-        self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else True
+        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 4
+        self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else False
         self.seed           = kwargs['seed'] if 'seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
         self.save_results   = kwargs['save_results'] if 'save_results' in kwargs else True
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
-        self.candidates     = None
 
         if self.func.log_transform:
             transform = lambda x: np.exp(x)
         else:
             transform = lambda x: x
-
-        if self.error_type == 'f':
-            if self.func.f_min is None:
-                self.error = lambda x: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(x), ord=2, axis=-1), axis=-1)
+        
+        if self.error_type == 'x':
+            if self.func.glob_min is not None:
+                self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
             else:
-                self.error = lambda x: np.min(np.linalg.norm(self.func.f_min - transform(x), ord=2, axis=-1), axis=-1)
+                raise ValueError
+        elif self.error_type == 'f':
+            if self.func.f_min is not None:
+                self.error = lambda y: np.min(np.linalg.norm(self.func.f_min - transform(y), ord=2, axis=-1), axis=-1)
+            elif self.func.glob_min is not None:
+                self.error = lambda y: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(y), ord=2, axis=-1), axis=-1)
+            else:
+                self.error = lambda y: np.max(transform(y), axis=-1)
         else:
-            self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
+            raise ValueError
+            
     
-    def create_candidates(self, N=None):
+    def create_candidates(self, N=None, strength=2):
         '''
         Creates candidate points among which the next best parameters will be selected.
         Also used for selecting the initial points of the optimisation process.
@@ -97,14 +103,10 @@ class Optimiser(object):
             Candidates points.
         '''
         
-        N = self.n_candidates if N is None else N
-        N = _get_olhs_num((self.func.dim - 1)**2)[0] if N == -1 else N
-
-        if self.olhs:
-            N = max(N, _get_olhs_num((self.func.dim - 1)**2)[0])
-            strength = 2
+        if strength == 2:
+            N = _get_olhs_num((self.func.dim - 1)**2)[0]
         else:
-            strength = 1
+            N = self.n_candidates if N is None else N
 
         lhs_       = qmc.LatinHypercube(d=self.func.domain.shape[0], scramble=True, strength=strength, seed=self.seed)
         candidates = lhs_.random(N)
@@ -114,7 +116,7 @@ class Optimiser(object):
     def predict(self):
         pass
     
-    def optimise(self, X=None, y=None, N=None):
+    def optimise(self, X=None, y=None):
         '''
         Runs the optimisation of the black-box function.
 
@@ -132,7 +134,7 @@ class Optimiser(object):
         self.errors = []
         
         if X is None:
-            X = self.create_candidates(N=-1 if N is None else N)
+            X = self.create_candidates(strength=1 if not self.olhs else 2)
             X, y = self.func.sample(X)
             self.res = np.array([[np.min(self.func(X))]])
             self.params = np.array([X[np.argmin(self.func(X)), :]])
@@ -181,12 +183,16 @@ class Optimiser(object):
             self._save()
     
     def _save(self, base_dir='test_results'):
+        
+        res = {'X': self.params,
+               'y': self.res,
+               'err': self.errors}
 
         if not os.path.isdir(base_dir):
             os.mkdir(base_dir)
 
         with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
-            pickle.dump(self.res, f)
+            pickle.dump(res, f)
     
     def plot_iteration_results(self):
         pass

@@ -1,15 +1,14 @@
 import time
 import pickle
 import numpy as np
-from scipy.optimize import minimize
-
 import matplotlib.pyplot as plt
 from matplotlib import cm, ticker
-
+from scipy.optimize import minimize
 from joblib import Parallel, delayed
 
 from .base import Optimiser
 from .utils import create_dir
+
 
 class SurrogateOptimiser(Optimiser):
     '''
@@ -71,19 +70,17 @@ class SurrogateOptimiser(Optimiser):
         self.func               = func
         self.surr               = surr
         self.acqf               = acqf
-        self.num_opt            = kwargs['num_opt'] if 'num_opt' in kwargs else True
+        
         self.num_opt_start      = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
         self.num_opt_disp       = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
-        self.tol                = kwargs['tol'] if 'tol' in kwargs else 1e-6
+        self.num_opt_tol        = kwargs['num_opt_tol'] if 'num_opt_tol' in kwargs else 1e-6
+        self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 128
+
         self.eq_cons            = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons          = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
-        self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 128
-        self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 10201
+
         self.jitter             = kwargs['jitter'] if 'jitter' in kwargs else 1e0
-        self.parallel           = kwargs['parallel'] if 'parallel' in kwargs else 4
-        
-        if not self.num_opt:
-            self.candidates     = None
+        self.parallel           = kwargs['parallel'] if 'parallel' in kwargs else 0
         
         if type(self.surr) == list:
             for s in self.surr:
@@ -91,9 +88,11 @@ class SurrogateOptimiser(Optimiser):
         else:
             self.surr.verbose   = self.verbose
     
+    
     def run_lbfgsb(self, x0):
-        opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
+        opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
         return opt_res.fun, opt_res.x
+    
 
     def numerical_search(self, x0=None):
         '''
@@ -105,21 +104,20 @@ class SurrogateOptimiser(Optimiser):
             Predicted optimum of the acquisition function.
         '''
         
-        
         if (x0 is None) and (self.num_opt_start != 'grid'):
             candidates = self.create_candidates()
         elif self.num_opt_start == 'random':
-            candidates = np.array(self.n_candidates * [x0])
+            candidates = np.array(self.num_opt_candidates * [x0])
             candidates += np.random.normal(0, self.eps, candidates.shape)
         elif self.num_opt_start == 'grid':
-            inter_conds = self.create_candidates(N=self.num_opt_candidates)
+            inter_conds = self.create_candidates(N=10201)
             ei = self.acqf(inter_conds)
             try:
-                ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
+                ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
                 candidates = np.take_along_axis(inter_conds, ids, axis=0)
             except ValueError:
                 ei = ei.squeeze()
-                ids = np.argsort(ei, axis=0)[:self.n_candidates].reshape(-1, 1)
+                ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
                 candidates = np.take_along_axis(inter_conds, ids, axis=0)
         
         if self.parallel in [0, 1]:
@@ -130,7 +128,7 @@ class SurrogateOptimiser(Optimiser):
             for x0 in candidates:
                 
                 if (self.eq_cons is None) and (self.ineq_cons is None):
-                    opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.tol, options={'disp': self.num_opt_disp})
+                    opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
                 else:
                     opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
                 
@@ -142,39 +140,12 @@ class SurrogateOptimiser(Optimiser):
         
         else:
 
-            r = Parallel(n_jobs=4, prefer="threads")(delayed(self.run_lbfgsb)(x0) for x0 in candidates)
+            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.run_lbfgsb)(x0) for x0 in candidates)
             f, x = zip(*r)
             f, x = np.array(f), np.array(x)
 
             return x[np.argmin(f)]
-        
-        
     
-    def direct_search(self):
-        '''
-        Direct search for the optimum of the acquisition function.
-
-        Returns
-        -------
-        best_x : np.array of shape (func.dim,)
-            Predicted optimum of the acquisition function
-        '''
-        
-        if self.fix_candidates:
-            if self.candidates is None:
-                self.candidates = self.create_candidates()
-        else:
-            self.candidates = self.create_candidates()
-        
-        if self.eq_cons is not None:
-            self.candidates = self.candidates[np.where(np.all(self.eq_cons(self.candidates) == 0, axis=0))[0]]
-        if self.ineq_cons is not None:
-            self.candidates = self.candidates[np.where(np.all(self.eq_cons(self.candidates) <= 0, axis=0))[0]]
-        
-        acqf_values = self.acqf(self.candidates)
-        best_x = self.candidates[np.argmin(acqf_values)]
-        
-        return best_x
 
     def predict(self, X, y, n_pred=1):
         '''
@@ -195,7 +166,7 @@ class SurrogateOptimiser(Optimiser):
         -------
         next_x : np.array of shape (func.dim, n_pred)
         '''
-
+        
         self.surr.fit(X, y)
             
         self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
@@ -205,15 +176,12 @@ class SurrogateOptimiser(Optimiser):
         next_xs = []
 
         while len(next_xs) < n_pred:
-            if self.num_opt:
-                
-                x0 = None
-                if self.num_opt_start == 'fmin':
-                    x0 = X[np.argmin(y)]
-                
-                next_x = self.numerical_search(x0=x0)
-            else:
-                next_x = self.direct_search()
+
+            x0 = None
+            if self.num_opt_start == 'fmin':
+                x0 = X[np.argmin(y)]
+            
+            next_x = self.numerical_search(x0=x0)
             
             if next_x in X:
                 next_x += np.random.normal(0, self.jitter, 1)
@@ -222,11 +190,16 @@ class SurrogateOptimiser(Optimiser):
         
         return np.array(next_xs)
     
+    
     def _save(self, base_dir='test_results'):
         res_path = create_dir(self.func, self.acqf.name, self.surr.name, base_dir=base_dir)
 
+        res = {'X': self.params,
+               'y': self.res,
+               'err': self.errors}
+
         with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
-            pickle.dump(self.res, f)
+            pickle.dump(res, f)
     
 
     def plot_iteration_results(self, X, next_x):
@@ -240,7 +213,7 @@ class SurrogateOptimiser(Optimiser):
         
         # transform = lambda x: np.exp(x) if self.func.log_transform else lambda x: x
 
-        mu, std = self.surr.predict(inter_conds)
+        mu, _ = self.surr.predict(inter_conds)
         mu = mu
         y_true = self.func(inter_conds)
         

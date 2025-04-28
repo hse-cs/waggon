@@ -6,44 +6,28 @@ from .surrogate import SurrogateOptimiser
 class BarycentreSurrogateOptimiser(SurrogateOptimiser):
     def __init__(self, func, surr, acqf, **kwargs):
         super(BarycentreSurrogateOptimiser, self).__init__(func, surr, acqf, **kwargs)
-        
-        self.surr.verbose   = self.verbose
-        self.acqf.verbose   = self.verbose
-        self.candidates     = None
-        self.surr_n_epochs  = surr.n_epochs
-    
+        self.acqf.n_epochs = self.surr.n_epochs
 
-    def predict(self, X, y, n_pred=1):
-        
-        if self.surr.n_epochs == 1:
-            del self.acqf.surr
-            gc.collect()
+    def predict(self, X, y):
 
-        preds = []
+        self.surr.save_epoch = int(self.surr.n_epochs * self.acqf.wp)
 
-        N = int(self.surr_n_epochs * self.acqf.wp)
+        self.surr.fit(X, y)
+        self.acqf.surr = [self.surr]
+        
+        x0 = None
+        if self.num_opt_start == 'fmin':
+            x0 = X[np.argmin(y)]
+        
+        next_x = self.numerical_search(x0=x0)
 
-        self.surr.n_epochs = N
-        self.surr.fit(X, y, epoch=0)
-        
-        for i in range(self.surr_n_epochs - N):
-            self.surr.n_epochs = 1
-            self.surr.fit(X, y, epoch=1)
-            preds.append(self.surr)
-        
-        self.acqf.surr = preds
-        
-        self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-        self.acqf.conds = X[::self.func.n_obs]
-        
-        next_x = []
-        for _ in range(n_pred):
-            next_x.append(self.numerical_search([1]))
-        
-        del preds
+        del self.acqf.surr
         gc.collect()
-
-        return np.array(next_x)
+        
+        if next_x in X:
+            next_x += np.random.normal(0, self.jitter, 1)
+        
+        return np.array([next_x])
 
 
 class EnsembleBarycentreSurrogateOptimiser(SurrogateOptimiser):

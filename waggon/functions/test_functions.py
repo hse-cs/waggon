@@ -162,30 +162,30 @@ class tang(Function):
         ) + 39.16617 * self.dim
         
         self.f_min    = 0.0
-        self.sigma    = lambda x: np.abs(x[:, 0] * np.sin(x[:, 1] - (-2.903534))) if 'sigma' in kwargs else lambda x: 1e-1
+        # self.sigma    = lambda x: np.abs(x[:, 0] * np.sin(x[:, 1] - (-2.903534))) if 'sigma' in kwargs else lambda x: 1e-1
     
-    def __call__(self, x):
-        if self.log_transform:
-            if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
-                return np.log(self.f(x) + self.log_eps) 
-            else:
-                return np.log(self.f(x) + self.sigma(x) + self.log_eps) 
-        else:
-            if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
-                return self.f(x)
-            else:
-                return self.f(x) + self.sigma(x)
+    # def __call__(self, x):
+    #     if self.log_transform:
+    #         if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
+    #             return np.log(self.f(x) + self.log_eps) 
+    #         else:
+    #             return np.log(self.f(x) + self.sigma(x) + self.log_eps) 
+    #     else:
+    #         if self.sigma(np.zeros((1, self.dim)))[0] == 1e-1:
+    #             return self.f(x)
+    #         else:
+    #             return self.f(x) + self.sigma(x)
 
-    def sample(self, x):
+    # def sample(self, x):
 
-        y = np.random.normal(self.__call__(x[0, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
-        X = x[0, :]*np.ones((self.n_obs, 1))
+    #     y = np.random.normal(self.__call__(x[0, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
+    #     X = x[0, :]*np.ones((self.n_obs, 1))
         
-        for i in range(1, x.shape[0]):
-            y_ = np.random.normal(self.__call__(x[i, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
-            X_ = x[i, :]*np.ones((self.n_obs, 1))
+    #     for i in range(1, x.shape[0]):
+    #         y_ = np.random.normal(self.__call__(x[i, :].reshape(1, -1)), self.sigma(x), (self.n_obs, 1))
+    #         X_ = x[i, :]*np.ones((self.n_obs, 1))
 
-            y = np.concatenate((y, y_))
-            X = np.concatenate((X, X_))
+    #         y = np.concatenate((y, y_))
+    #         X = np.concatenate((X, X_))
         
-        return X, y
+    #     return X, y

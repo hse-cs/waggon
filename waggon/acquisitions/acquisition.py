@@ -1,3 +1,5 @@
+import torch
+import gpytorch
 import numpy as np
 from scipy.special import expit
 from scipy.spatial.distance import cdist
@@ -317,13 +319,14 @@ class KG(Acquisition):
 
 
 class BarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=False):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=0):
         '''
         Expected Improvement (EI) acquisition function.
         '''
         super(BarycentreEI, self).__init__()
         
         self.name = 'BarycentreEI'
+        self.surr = None
         self.log_transform = log_transform
         self.verbose = 1
         self.wf = wf
@@ -332,25 +335,36 @@ class BarycentreEI(Acquisition):
         self.parallel = parallel
     
     def __single_pred(self, surr):
-        return surr.predict(self.x)
+        with torch.no_grad(), gpytorch.settings.fast_pred_var():
+            observed_pred = surr.likelihood(surr(self.x))
+        return observed_pred.mean[0, 0, :].detach().numpy(), torch.sqrt(observed_pred.variance)[0, 0, :].detach().numpy()
         
     def __call__(self, x, **kwargs):
         
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
-
+        
+        if len(self.surr) == 1:
+            
+            for epoch in range(int(self.n_epochs * self.wp), self.n_epochs):
+                self.surr.append(self.surr[0].load_model(epoch=epoch, wb=True))
+            
+            self.surr.append(self.surr.pop(self.surr.index(self.surr[0])))
+            self.surr[-1] = self.surr[-1].model
+        
         if self.parallel:
-            self.x = x
-            r = Parallel(n_jobs=4, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
+            self.x = torch.tensor(x).float()
+            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
             r = np.concatenate(r)
             mu, std = r[:, 0], r[:, 1]
 
         else:
             mu, std = [], []
             for surr in self.surr:
-                pred = surr.predict(x, **kwargs)
-                mu.append(pred[0])
-                std.append(pred[1])
+                with torch.no_grad(), gpytorch.settings.fast_pred_var():
+                    observed_pred = surr.likelihood(surr(torch.tensor(x).float()))
+                    mu.append(observed_pred.mean[0, 0, :].detach().numpy())
+                    std.append(torch.sqrt(observed_pred.variance)[0, 0, :].detach().numpy())
         
         mu, std = np.array(mu), np.array(std)
         
@@ -368,14 +382,8 @@ class BarycentreEI(Acquisition):
         w /= np.sum(w)
         
         mu, std = np.sum(w * mu, axis=0), np.sum(w * std, axis=0)
-
-        z_ = np.min(self.y) - mu
-        z  = z_ / (std + 1e-8)
-        z_prob, z_dens = norm.cdf(z), norm.pdf(z)
-
-        EI = z_ * z_prob + std * z_dens
         
         if self.log_transform:
-            return -1.0 * np.log(EI + 1e-6)
+            return np.log(mu + std + 1e-8)
         else:
-            return -1.0 * EI
+            return mu + std

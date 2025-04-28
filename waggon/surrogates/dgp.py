@@ -1,5 +1,4 @@
-from .base import Surrogate
-
+import os
 import gc
 import torch
 import gpytorch
@@ -13,6 +12,8 @@ from gpytorch.distributions import MultivariateNormal
 from gpytorch.mlls import VariationalELBO, DeepApproximateMLL
 from gpytorch.variational import CholeskyVariationalDistribution, VariationalStrategy
 
+from .base import Surrogate
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.set_default_device(device)
 
@@ -23,16 +24,27 @@ class DGP(Surrogate):
         self.name         = 'DGP'
         self.model        = kwargs['model'] if 'model' in kwargs else None
         self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 200
-        self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
+        self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-2
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 64
+        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 16
         self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 128
-        self.actf         = kwargs['actf'] if 'actf' in kwargs else torch.tanh
-        self.means        = kwargs['means'] if 'means' in kwargs else ['linear', 'linear']
-        self.scale        = kwargs['scale'] if 'scale' in kwargs else True
+        self.actf         = kwargs['actf'] if 'actf' in kwargs else None
+        self.means        = kwargs['means'] if 'means' in kwargs else ['constant', 'linear']
+        self.scale        = kwargs['scale'] if 'scale' in kwargs else False
+        self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else 0
 
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
+    
+    def make_model(self):
+        return DeepGPModel(
+                in_dim       = self.input_shape,
+                hidden_size  = self.hidden_size,
+                num_inducing = self.num_inducing,
+                actf         = self.actf,
+                means        = self.means,
+                gen          = self.gen
+            )
     
     def fit(self, X, y, epoch=None):
         
@@ -40,14 +52,8 @@ class DGP(Surrogate):
             del self.model
             gc.collect()
 
-            self.model = DeepGPModel(
-                in_dim       = X.shape[1],
-                hidden_size  = self.hidden_size,
-                num_inducing = self.num_inducing,
-                actf         = self.actf,
-                means        = self.means,
-                gen          = self.gen
-            )
+            self.input_shape = X.shape[1]
+            self.model = self.make_model()
         
         X = torch.tensor(X).float()
         y = torch.tensor(y).float().squeeze()
@@ -74,9 +80,12 @@ class DGP(Surrogate):
             loss = -mll(output, y)
             loss.mean().backward()
             optimizer.step()
+
+            if (self.save_epoch) and (epoch >= self.save_epoch) :
+                self.save_model(epoch=epoch)
             
             if self.verbose > 1:
-                pbar.set_description(f'Epoch {epoch + 1}/{self.n_epochs} - Loss: {loss.mean().item():.3f}')
+                pbar.set_description(f'Epoch {epoch + 1} - Loss: {loss.mean().item():.3f}')
 
     
     def predict(self, X):
@@ -88,11 +97,34 @@ class DGP(Surrogate):
             std = torch.sqrt(observed_pred.variance)[0, 0, :]
         
         if self.scale:
-            # print(mean.shape, std.shape, self.y_mu.shape, self.y_std.shape)
             mean += self.y_mu
             std *= self.y_std
         
         return mean.detach().numpy(), std.detach().numpy()
+    
+    def save_model(self, epoch=1, dir='models'):
+
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+        
+        torch.save(self.model.state_dict(), f'{dir}/dgp_{epoch}.pt')
+    
+    def load_model(self, epoch=None, dir='models', wb=False):
+
+        model = self.make_model()
+
+        if epoch is None:
+            epoch = self.n_epochs
+
+        model.load_state_dict(torch.load(f'{dir}/dgp_{epoch}.pt', weights_only=True))
+        model.eval()
+
+        if wb:
+            return model
+        else:
+            self.model = model
+            del model
+            gc.colect()
 
 
 class SingleLayerGP(AbstractVariationalGP):
