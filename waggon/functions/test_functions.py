@@ -125,7 +125,7 @@ class submanifold_rosenbrock(Function):
         self.dim = dim
         self.sub_dim = sub_dim
         self.sigma = 1.0
-        self.domain = np.tile([-10, 10], reps=(dim, 2))
+        self.domain = np.array([self.dim*[-10, 10]]).reshape(self.dim, 2)
         
         self.name = f"Submanifold Rosenbrock (dim={dim}, subdim={sub_dim})"
         

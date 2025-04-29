@@ -59,7 +59,7 @@ class Optimiser(object):
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-4
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 4
+        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 2 * self.func.dim
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else False
         self.seed           = kwargs['seed'] if 'seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
@@ -104,7 +104,8 @@ class Optimiser(object):
         '''
         
         if strength == 2:
-            N = _get_olhs_num((self.func.dim - 1)**2)[0]
+            if N is None:
+                N = _get_olhs_num((self.func.dim - 1)**2)[0]
         else:
             N = self.n_candidates if N is None else N
 

@@ -333,6 +333,7 @@ class BarycentreEI(Acquisition):
         self.ws = ws
         self.wp = wp
         self.parallel = parallel
+        self.L = 1.0
     
     def __single_pred(self, surr):
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
@@ -366,7 +367,7 @@ class BarycentreEI(Acquisition):
                     mu.append(observed_pred.mean[0, 0, :].detach().numpy())
                     std.append(torch.sqrt(observed_pred.variance)[0, 0, :].detach().numpy())
         
-        mu, std = np.array(mu), np.array(std)
+        mu = np.array(mu)
         
         if self.wf == 'l':
             w = np.linspace(1e-2, 1, mu.shape[1])
@@ -381,9 +382,9 @@ class BarycentreEI(Acquisition):
         
         w /= np.sum(w)
         
-        mu, std = np.sum(w * mu, axis=0), np.sum(w * std, axis=0)
+        mu, eps = np.sum(w * mu, axis=0), np.std(mu)
         
         if self.log_transform:
-            return np.log(mu + std + 1e-8)
+            return np.log(mu + self.L * eps + 1e-8)
         else:
-            return mu + std
+            return mu + self.L * eps
