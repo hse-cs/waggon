@@ -28,8 +28,8 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
         
         next_x = self.numerical_search(x0=x0)
 
-        # del self.acqf.surr
-        # gc.collect()
+        del self.acqf.surr
+        gc.collect()
         
         if next_x in X:
             next_x += np.random.normal(0, self.jitter, 1)
@@ -46,26 +46,30 @@ class EnsembleBarycentreSurrogateOptimiser(SurrogateOptimiser):
         self.acqf.verbose   = self.verbose
         self.candidates     = None
     
+    def get_lip(self, X, y):
+        idx = np.array(np.meshgrid(np.arange(X.shape[0]), np.arange(X.shape[0]))).T.reshape(-1, 2)
+        idx = idx[idx[:, 0] != idx[:, 1]]
+        L = np.max(np.linalg.norm(y[idx[:, 0]] - y[idx[:, 1]], axis=-1) / np.linalg.norm(X[idx[:, 0]] - X[idx[:, 1]], axis=-1))
+        return L
 
-    def predict(self, X, y, n_pred=1):
+    def predict(self, X, y):
         
         surrs = []
         
         for surr in self.surr:
-            
             surr.fit(X, y)
             surrs.append(surr)
         
         self.acqf.surr = surrs
+        self.acqf.L = self.get_lip(X, y)
         
-        self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-        self.acqf.conds = X[::self.func.n_obs]
+        x0 = None
+        if self.num_opt_start == 'fmin':
+            x0 = X[np.argmin(y)]
         
-        next_x = []
-        for _ in range(n_pred):
-            next_x.append(self.numerical_search([1]))
+        next_x = self.numerical_search(x0=x0)
         
-        del surrs
+        del self.acqf.surr
         gc.collect()
 
-        return np.array(next_x)
+        return np.array([next_x])

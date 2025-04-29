@@ -338,9 +338,9 @@ class BarycentreEI(Acquisition):
     def __single_pred(self, surr):
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             observed_pred = surr.likelihood(surr(self.x))
-        return observed_pred.mean[0, 0, :].detach().numpy(), torch.sqrt(observed_pred.variance)[0, 0, :].detach().numpy()
+        return observed_pred.mean[0, 0, :].detach().numpy()
         
-    def __call__(self, x, **kwargs):
+    def __call__(self, x):
         
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
@@ -356,16 +356,71 @@ class BarycentreEI(Acquisition):
         if self.parallel:
             self.x = torch.tensor(x).float()
             r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
-            r = np.concatenate(r)
-            mu, std = r[:, 0], r[:, 1]
+            mu = np.concatenate(r)[:, 0]
 
         else:
-            mu, std = [], []
+            mu = []
             for surr in self.surr:
                 with torch.no_grad(), gpytorch.settings.fast_pred_var():
                     observed_pred = surr.likelihood(surr(torch.tensor(x).float()))
                     mu.append(observed_pred.mean[0, 0, :].detach().numpy())
-                    std.append(torch.sqrt(observed_pred.variance)[0, 0, :].detach().numpy())
+        
+        mu = np.array(mu)
+        
+        if self.wf == 'l':
+            w = np.linspace(1e-2, 1, mu.shape[1])
+        elif self.wf == 'c':
+            w = np.sin(np.linspace(1e-2, 1.57, mu.shape[1]))**2
+        elif self.wf == 's':
+            w = expit(np.linspace(-3, 3, mu.shape[1]))
+        elif self.wf == 'e':
+            w = np.exp(np.linspace(-2, 2, mu.shape[1]))
+        else:
+            w = np.ones(mu.shape[1])
+        
+        w /= np.sum(w)
+        
+        mu, eps = np.sum(w * mu, axis=0), np.std(mu)
+        
+        if self.log_transform:
+            return np.log(mu + self.L * eps + 1e-8)
+        else:
+            return mu + self.L * eps
+
+
+class GPBarycentreEI(Acquisition):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=0):
+        '''
+        Expected Improvement (EI) acquisition function.
+        '''
+        super(BarycentreEI, self).__init__()
+        
+        self.name = 'BarycentreEI'
+        self.surr = None
+        self.log_transform = log_transform
+        self.verbose = 1
+        self.wf = wf
+        self.ws = ws
+        self.wp = wp
+        self.parallel = parallel
+        self.L = 1.0
+    
+    def __single_pred(self, surr):
+        return surr.predict(self.x)[0]
+        
+    def __call__(self, x):
+        
+        if len(x.shape) == 1:
+            x = x.reshape(1, -1)
+        
+        if self.parallel:
+            self.x = torch.tensor(x).float()
+            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
+            mu = np.concatenate(r)
+        else:
+            mu = []
+            for surr in self.surr:
+                mu.append(surr.predict(x)[0])
         
         mu = np.array(mu)
         
