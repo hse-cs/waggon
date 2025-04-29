@@ -44,7 +44,6 @@ class EnsembleBarycentreSurrogateOptimiser(SurrogateOptimiser):
         for surr in self.surr:
             surr.verbose   = self.verbose
         self.acqf.verbose   = self.verbose
-        self.candidates     = None
     
     def get_lip(self, X, y):
         idx = np.array(np.meshgrid(np.arange(X.shape[0]), np.arange(X.shape[0]))).T.reshape(-1, 2)

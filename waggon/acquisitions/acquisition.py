@@ -355,17 +355,14 @@ class BarycentreEI(Acquisition):
         
         if self.parallel:
             self.x = torch.tensor(x).float()
-            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
-            mu = np.concatenate(r)[:, 0]
-
+            mu = np.array(Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr))
         else:
             mu = []
             for surr in self.surr:
                 with torch.no_grad(), gpytorch.settings.fast_pred_var():
                     observed_pred = surr.likelihood(surr(torch.tensor(x).float()))
                     mu.append(observed_pred.mean[0, 0, :].detach().numpy())
-        
-        mu = np.array(mu)
+            mu = np.array(mu)
         
         if self.wf == 'l':
             w = np.linspace(1e-2, 1, mu.shape[1])
@@ -393,15 +390,13 @@ class GPBarycentreEI(Acquisition):
         '''
         Expected Improvement (EI) acquisition function.
         '''
-        super(BarycentreEI, self).__init__()
+        super(GPBarycentreEI, self).__init__()
         
         self.name = 'BarycentreEI'
         self.surr = None
         self.log_transform = log_transform
         self.verbose = 1
         self.wf = wf
-        self.ws = ws
-        self.wp = wp
         self.parallel = parallel
         self.L = 1.0
     
@@ -414,15 +409,12 @@ class GPBarycentreEI(Acquisition):
             x = x.reshape(1, -1)
         
         if self.parallel:
-            self.x = torch.tensor(x).float()
-            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr)
-            mu = np.concatenate(r)
+            mu = np.array(Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr))
         else:
             mu = []
             for surr in self.surr:
                 mu.append(surr.predict(x)[0])
-        
-        mu = np.array(mu)
+            mu = np.array(mu)
         
         if self.wf == 'l':
             w = np.linspace(1e-2, 1, mu.shape[1])
