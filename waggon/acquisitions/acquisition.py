@@ -50,7 +50,7 @@ class EI(Acquisition):
         EI = z_ * z_prob + std * z_dens
 
         if self.log_transform:
-            return -1.0 * np.log(EI + 1e-8)
+            return -1.0 * np.log(EI + 1e-6)
         else:
             return -1.0 * EI
 
@@ -319,7 +319,7 @@ class KG(Acquisition):
 
 
 class BarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=0):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=False, parallel=0):
         '''
         Expected Improvement (EI) acquisition function.
         '''
@@ -347,7 +347,7 @@ class BarycentreEI(Acquisition):
         
         if len(self.surr) == 1:
             
-            for epoch in range(int(self.n_epochs * self.wp), self.n_epochs):
+            for epoch in range(self.surr[0].save_epoch, self.n_epochs):
                 self.surr.append(self.surr[0].load_model(epoch=epoch, wb=True))
             
             self.surr.append(self.surr.pop(self.surr.index(self.surr[0])))
@@ -379,14 +379,14 @@ class BarycentreEI(Acquisition):
         
         mu, eps = np.sum(w * mu, axis=0), np.std(mu)
         
-        if self.log_transform:
-            return np.log(mu + self.L * eps + 1e-8)
-        else:
-            return mu + self.L * eps
+        # if self.log_transform:
+        #     return np.log(mu + self.L * eps + 1e-6)
+        # else:
+        return mu - self.L * eps
 
 
 class GPBarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=True, parallel=0):
+    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=False, parallel=0):
         '''
         Expected Improvement (EI) acquisition function.
         '''
@@ -431,7 +431,7 @@ class GPBarycentreEI(Acquisition):
         
         mu, eps = np.sum(w * mu, axis=0), np.std(mu)
         
-        if self.log_transform:
-            return np.log(mu + self.L * eps + 1e-8)
-        else:
-            return mu + self.L * eps
+        # if self.log_transform:
+        #     return np.log(mu + self.L * eps + 1e-6)
+        # else:
+        return mu - self.L * eps

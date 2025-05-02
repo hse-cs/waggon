@@ -24,13 +24,13 @@ class DGP(Surrogate):
         self.name         = 'DGP'
         self.model        = kwargs['model'] if 'model' in kwargs else None
         self.n_epochs     = kwargs['n_epochs'] if 'n_epochs' in kwargs else 200
-        self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-2
+        self.lr           = kwargs['lr'] if 'lr' in kwargs else 1e-1
         self.verbose      = kwargs['verbose'] if 'verbose' in kwargs else 1
-        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 16
+        self.num_inducing = kwargs['num_inducing'] if 'num_inducing' in kwargs else 64
         self.hidden_size  = kwargs['hidden_size'] if 'hidden_size' in kwargs else 128
-        self.actf         = kwargs['actf'] if 'actf' in kwargs else None
-        self.means        = kwargs['means'] if 'means' in kwargs else ['constant', 'linear']
-        self.scale        = kwargs['scale'] if 'scale' in kwargs else False
+        self.actf         = kwargs['actf'] if 'actf' in kwargs else torch.tanh
+        self.means        = kwargs['means'] if 'means' in kwargs else ['linear', 'linear']
+        self.scale        = kwargs['scale'] if 'scale' in kwargs else True
         self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else 0
 
         self.gen = torch.Generator() # for reproducibility
@@ -81,7 +81,8 @@ class DGP(Surrogate):
             loss.mean().backward()
             optimizer.step()
 
-            if (self.save_epoch) and (epoch >= self.save_epoch) :
+            if (epoch >= self.save_epoch):
+                # print(self.save_epoch)
                 self.save_model(epoch=epoch)
             
             if self.verbose > 1:

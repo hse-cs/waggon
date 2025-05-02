@@ -65,6 +65,7 @@ class SurrogateOptimiser(Optimiser):
         Whether results are saved or not.
     '''
     def __init__(self, func, surr, acqf, **kwargs):
+        kwargs['func'] = func
         super(SurrogateOptimiser, self).__init__(**kwargs)
         
         self.func               = func
@@ -122,19 +123,20 @@ class SurrogateOptimiser(Optimiser):
         
         if self.parallel in [0, 1]:
 
-            best_x = None
-            best_acqf = np.inf
-
-            for x0 in candidates:
+            for i, x0 in enumerate(candidates):
                 
                 if (self.eq_cons is None) and (self.ineq_cons is None):
                     opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
                 else:
                     opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
                 
-                if opt_res.fun < best_acqf:
-                    best_acqf = opt_res.fun
+                if i == 0:
                     best_x = opt_res.x
+                    best_acqf = opt_res.fun
+                else:
+                    if opt_res.fun < best_acqf:
+                        best_acqf = opt_res.fun
+                        best_x = opt_res.x
             
             return best_x
         

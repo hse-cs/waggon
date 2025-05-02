@@ -80,9 +80,10 @@ class Optimiser(object):
             if self.func.f_min is not None:
                 self.error = lambda y: np.min(np.linalg.norm(self.func.f_min - transform(y), ord=2, axis=-1), axis=-1)
             elif self.func.glob_min is not None:
-                self.error = lambda y: np.min(np.linalg.norm(transform(self.func(self.func.glob_min)) - transform(y), ord=2, axis=-1), axis=-1)
+                self.func_f_min = self.func(self.func.glob_min)
+                self.error = lambda y: np.min(np.linalg.norm(transform(self.func_f_min) - transform(y), ord=2, axis=-1), axis=-1)
             else:
-                self.error = lambda y: np.max(transform(y), axis=-1)
+                self.error = lambda y: np.max(transform(y))
         else:
             raise ValueError
             
