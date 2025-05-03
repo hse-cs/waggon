@@ -382,7 +382,7 @@ class BarycentreEI(Acquisition):
         # if self.log_transform:
         #     return np.log(mu + self.L * eps + 1e-6)
         # else:
-        return mu - self.L * eps
+        return mu + self.L * eps
 
 
 class GPBarycentreEI(Acquisition):
@@ -434,4 +434,4 @@ class GPBarycentreEI(Acquisition):
         # if self.log_transform:
         #     return np.log(mu + self.L * eps + 1e-6)
         # else:
-        return mu - self.L * eps
+        return mu + self.L * eps

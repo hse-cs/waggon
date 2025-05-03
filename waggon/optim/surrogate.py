@@ -185,7 +185,7 @@ class SurrogateOptimiser(Optimiser):
             
             next_x = self.numerical_search(x0=x0)
             
-            if next_x in X:
+            if np.any(np.sum(X - next_x, axis=-1) < 1e-6):
                 next_x += np.random.normal(0, self.jitter, 1)
             
             next_xs.append(next_x)
