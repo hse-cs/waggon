@@ -47,7 +47,7 @@ class SurrogateOptimiser(Optimiser):
     fix_candidates : bool, default = False if num_opt else True
         Whether the candidate points should be fixed or not.
     
-    n_candidates : int, default = 1 if num_opt else 101**2
+    n_candidates_ : int, default = 1 if num_opt else 101**2
         Number of candidates points.
     
     olhs : bool, default = True
@@ -72,6 +72,7 @@ class SurrogateOptimiser(Optimiser):
         self.surr               = surr
         self.acqf               = acqf
         
+        self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 10201
         self.num_opt_start      = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
         self.num_opt_disp       = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
         self.num_opt_tol        = kwargs['num_opt_tol'] if 'num_opt_tol' in kwargs else 1e-6
@@ -111,15 +112,16 @@ class SurrogateOptimiser(Optimiser):
             candidates = np.array(self.num_opt_candidates * [x0])
             candidates += np.random.normal(0, self.eps, candidates.shape)
         elif self.num_opt_start == 'grid':
-            inter_conds = self.create_candidates(N=10201)
-            ei = self.acqf(inter_conds)
-            try:
-                ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
-                candidates = np.take_along_axis(inter_conds, ids, axis=0)
-            except ValueError:
-                ei = ei.squeeze()
-                ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
-                candidates = np.take_along_axis(inter_conds, ids, axis=0)
+            inter_conds = self.create_candidates(N=self.n_candidates)
+            if self.num_opt_candidates < self.n_candidates:
+                ei = self.acqf(inter_conds)
+                try:
+                    ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
+                    candidates = np.take_along_axis(inter_conds, ids, axis=0)
+                except ValueError:
+                    ei = ei.squeeze()
+                    ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
+                    candidates = np.take_along_axis(inter_conds, ids, axis=0)
         
         if self.parallel in [0, 1]:
 
@@ -149,7 +151,7 @@ class SurrogateOptimiser(Optimiser):
             return x[np.argmin(f)]
     
 
-    def predict(self, X, y, n_pred=1):
+    def predict(self, X, y):
         '''
         Predicts the next best set of parameter values by optimising the acquisition function.
         
@@ -175,22 +177,16 @@ class SurrogateOptimiser(Optimiser):
         self.acqf.conds = X[::self.func.n_obs]
         self.acqf.surr = self.surr
 
-        next_xs = []
+        next_x = np.nan
 
-        while len(next_xs) < n_pred:
-
+        while not np.any(np.sum(X - next_x, axis=-1) < 1e-6):
             x0 = None
             if self.num_opt_start == 'fmin':
                 x0 = X[np.argmin(y)]
             
             next_x = self.numerical_search(x0=x0)
-            
-            if np.any(np.sum(X - next_x, axis=-1) < 1e-6):
-                next_x += np.random.normal(0, self.jitter, 1)
-            
-            next_xs.append(next_x)
-        
-        return np.array(next_xs)
+
+        return np.array([next_x])
     
     
     def _save(self, base_dir='test_results'):

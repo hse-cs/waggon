@@ -38,7 +38,7 @@ class Optimiser(object):
         fix_candidates : bool, default = False if num_opt else True
             Whether the candidate points should be fixed or not.
         
-        n_candidates : int, default = 1 if num_opt else 101**2
+        n_points : int, default = 1 if num_opt else 101**2
             Number of candidates points.
         
         olhs : bool, default = True
@@ -59,7 +59,7 @@ class Optimiser(object):
         self.max_iter       = kwargs['max_iter'] if 'max_iter' in kwargs else 100
         self.eps            = kwargs['eps'] if 'eps' in kwargs else 1e-4
         self.error_type     = kwargs['error_type'] if 'error_type' in kwargs else 'x'
-        self.n_candidates   = kwargs['n_candidates'] if 'n_candidates' in kwargs else 2 * self.func.dim
+        self.n_points       = kwargs['n_points'] if 'n_points' in kwargs else 2 * self.func.dim
         self.olhs           = kwargs['olhs'] if 'olhs' in kwargs else False
         self.seed           = kwargs['seed'] if 'seed' in kwargs else None
         self.verbose        = kwargs['verbose'] if 'verbose' in kwargs else 1
@@ -95,7 +95,7 @@ class Optimiser(object):
 
         Parameters
         ----------
-        N : int, default = self.n_candidates
+        N : int, default = self.n_points
             Number of points to sample
 
         Returns
@@ -108,7 +108,7 @@ class Optimiser(object):
             if N is None:
                 N = _get_olhs_num((self.func.dim - 1)**2)[0]
         else:
-            N = self.n_candidates if N is None else N
+            N = self.n_points if N is None else N
 
         lhs_       = qmc.LatinHypercube(d=self.func.domain.shape[0], scramble=True, strength=strength, seed=self.seed)
         candidates = lhs_.random(N)
