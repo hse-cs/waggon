@@ -122,6 +122,8 @@ class SurrogateOptimiser(Optimiser):
                     ei = ei.squeeze()
                     ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
                     candidates = np.take_along_axis(inter_conds, ids, axis=0)
+            else:
+                candidates = inter_conds
         
         if self.parallel in [0, 1]:
 
