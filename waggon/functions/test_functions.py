@@ -152,6 +152,7 @@ class tang(Function):
         super(tang, self).__init__(**kwargs)
 
         self.dim      = dim
+        self.sigma    = 1.0
         self.domain   = np.array([self.dim*[-5, 5]]).reshape(self.dim, 2)
         self.name     = f'Styblinski-Tang ({self.dim} dim.)'
         self.glob_min = np.ones(self.dim).reshape(1, -1) * -2.903534

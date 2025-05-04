@@ -31,7 +31,9 @@ class DGP(Surrogate):
         self.actf         = kwargs['actf'] if 'actf' in kwargs else torch.tanh
         self.means        = kwargs['means'] if 'means' in kwargs else ['linear', 'linear']
         self.scale        = kwargs['scale'] if 'scale' in kwargs else True
-        self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else 0
+        self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else self.n_epochs + 1
+        if self.save_epoch < 1:
+            self.save_epoch = int(self.n_epochs * self.save_epoch)
 
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
@@ -110,7 +112,7 @@ class DGP(Surrogate):
         
         torch.save(self.model.state_dict(), f'{dir}/dgp_{epoch}.pt')
     
-    def load_model(self, epoch=None, dir='models', wb=False):
+    def load_model(self, epoch=None, dir='models', return_model=False):
 
         model = self.make_model()
 
@@ -120,7 +122,7 @@ class DGP(Surrogate):
         model.load_state_dict(torch.load(f'{dir}/dgp_{epoch}.pt', weights_only=True))
         model.eval()
 
-        if wb:
+        if return_model:
             return model
         else:
             self.model = model

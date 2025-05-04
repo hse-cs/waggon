@@ -173,21 +173,26 @@ class SurrogateOptimiser(Optimiser):
         next_x : np.array of shape (func.dim, n_pred)
         '''
         
-        self.surr.fit(X, y)
+        for j in range(self.n_candidates):
+
+            self.surr.fit(X, y)
             
-        self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-        self.acqf.conds = X[::self.func.n_obs]
-        self.acqf.surr = self.surr
+            self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
+            self.acqf.conds = X[::self.func.n_obs]
+            self.acqf.surr = self.surr
 
-        next_x = np.nan
-
-        while not np.any(np.sum(X - next_x, axis=-1) < 1e-6):
             x0 = None
             if self.num_opt_start == 'fmin':
                 x0 = X[np.argmin(y)]
             
             next_x = self.numerical_search(x0=x0)
 
+            if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
+                break
+        
+        if j == self.n_candidates - 1:
+            next_x += np.random.normal(0, self.eps, 1)
+        
         return np.array([next_x])
     
     

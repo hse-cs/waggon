@@ -14,6 +14,7 @@ class StyblinskyTang(FunctionV2):
         self.name = f"Styblinski-Tang (dim={self.dim})"
         self.glob_min = np.full((1, dim), fill_value=-2.903534)
         self.f_min = 0.0
+        self.sigma = 1.0
     
     def func(self, x: np.ndarray) -> np.ndarray:
         return np.sum(

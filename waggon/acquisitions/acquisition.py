@@ -318,20 +318,14 @@ class KG(Acquisition):
         return kg
 
 
-class BarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=False, parallel=0):
-        '''
-        Expected Improvement (EI) acquisition function.
-        '''
-        super(BarycentreEI, self).__init__()
+class OTUCB(Acquisition):
+    def __init__(self, robust=False, parallel=0):
+        super(OTUCB, self).__init__()
         
-        self.name = 'BarycentreEI'
+        self.name = 'OTUCB'
         self.surr = None
-        self.log_transform = log_transform
+        self.robust = robust
         self.verbose = 1
-        self.wf = wf
-        self.ws = ws
-        self.wp = wp
         self.parallel = parallel
         self.L = 1.0
     
@@ -345,14 +339,6 @@ class BarycentreEI(Acquisition):
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
         
-        if len(self.surr) == 1:
-            
-            for epoch in range(self.surr[0].save_epoch, self.n_epochs):
-                self.surr.append(self.surr[0].load_model(epoch=epoch, wb=True))
-            
-            self.surr.append(self.surr.pop(self.surr.index(self.surr[0])))
-            self.surr[-1] = self.surr[-1].model
-        
         if self.parallel:
             self.x = torch.tensor(x).float()
             mu = np.array(Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr))
@@ -364,37 +350,22 @@ class BarycentreEI(Acquisition):
                     mu.append(observed_pred.mean[0, 0, :].detach().numpy())
             mu = np.array(mu)
         
-        if self.wf == 'l':
-            w = np.linspace(1e-2, 1, mu.shape[1])
-        elif self.wf == 'c':
-            w = np.sin(np.linspace(1e-2, 1.57, mu.shape[1]))**2
-        elif self.wf == 's':
-            w = expit(np.linspace(-3, 3, mu.shape[1]))
-        elif self.wf == 'e':
-            w = np.exp(np.linspace(-2, 2, mu.shape[1]))
-        else:
-            w = np.ones(mu.shape[1])
-        
-        w /= np.sum(w)
-        
+        w = np.ones(mu.shape[1]) / mu.shape[1]
         mu, eps = np.sum(w * mu, axis=0), np.std(mu)
         
-        # if self.log_transform:
-        #     return np.log(mu + self.L * eps + 1e-6)
-        # else:
-        return mu + self.L * eps
+        if self.robust:
+            return mu + self.L * eps
+        else:
+            return mu - self.L * eps
 
 
-class GPBarycentreEI(Acquisition):
-    def __init__(self, wf='u', ws='h', wp=0.8, log_transform=False, parallel=0):
-        '''
-        Expected Improvement (EI) acquisition function.
-        '''
-        super(GPBarycentreEI, self).__init__()
+class GP_OTUCB(Acquisition):
+    def __init__(self, wf='u', ws='h', wp=0.8, robust=False, parallel=0):
+        super(GP_OTUCB, self).__init__()
         
-        self.name = 'BarycentreEI'
+        self.name = 'GP_OTUCB'
         self.surr = None
-        self.log_transform = log_transform
+        self.robust = robust
         self.verbose = 1
         self.wf = wf
         self.parallel = parallel
@@ -431,7 +402,7 @@ class GPBarycentreEI(Acquisition):
         
         mu, eps = np.sum(w * mu, axis=0), np.std(mu)
         
-        # if self.log_transform:
-        #     return np.log(mu + self.L * eps + 1e-6)
-        # else:
-        return mu + self.L * eps
+        if self.robust:
+            return mu + self.L * eps
+        else:
+            return mu - self.L * eps
