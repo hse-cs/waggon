@@ -6,6 +6,7 @@ from .surrogate import SurrogateOptimiser
 class BarycentreSurrogateOptimiser(SurrogateOptimiser):
     def __init__(self, func, surr, acqf, **kwargs):
         super(BarycentreSurrogateOptimiser, self).__init__(func, surr, acqf, **kwargs)
+        self.clear_surr = kwargs['clear_surr'] if 'clear_surr' in kwargs else False
     
     def get_lip(self, X, y):
         idx = np.array(np.meshgrid(np.arange(X.shape[0]), np.arange(X.shape[0]))).T.reshape(-1, 2)
@@ -15,25 +16,32 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
 
     def predict(self, X, y):
 
-        self.surr.fit(X, y)
-        self.acqf.L = self.get_lip(X, y)
-        self.acqf.surr = []
-        for epoch in range(self.surr.save_epoch, self.surr.n_epochs):
-            self.acqf.surr.append(self.surr.load_model(epoch=epoch, return_model=True))
-        
-        x0 = None
-        if self.num_opt_start == 'fmin':
-            x0 = X[np.argmin(y)]
-        
-        next_x = self.numerical_search(x0=x0)
+        for j in range(self.n_candidates):
 
-        del self.acqf.surr
-        gc.collect()
+            self.surr.fit(X, y)
+            self.acqf.L = self.get_lip(X, y)
+            self.acqf.surr = []
+            for epoch in range(self.surr.save_epoch, self.surr.n_epochs):
+                self.acqf.surr.append(self.surr.load_model(epoch=epoch, return_model=True))
+            
+            next_x = self.numerical_search(x0=X[np.argmin(y)])
+
+            if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
+                break
         
-        if next_x in X:
-            next_x += np.random.normal(0, self.jitter, 1)
+        if j == self.n_candidates - 1:
+            next_x += np.random.normal(0, self.eps, 1)
+        
+        if self.clear_surr:
+            del self.acqf.surr
+            gc.collect()
         
         return np.array([next_x])
+        
+        # if next_x in X:
+        #     next_x += np.random.normal(0, self.jitter, 1)
+        
+        # return np.array([next_x])
 
 
 class EnsembleBarycentreSurrogateOptimiser(SurrogateOptimiser):

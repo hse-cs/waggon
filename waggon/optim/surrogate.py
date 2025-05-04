@@ -110,7 +110,8 @@ class SurrogateOptimiser(Optimiser):
             candidates = self.create_candidates()
         elif self.num_opt_start == 'random':
             candidates = np.array(self.num_opt_candidates * [x0])
-            candidates += np.random.normal(0, self.eps, candidates.shape)
+            std = max(self.jitter, np.abs(self.errors[-1] - self.errors[-2]) if len(self.errors) > 1 else self.jitter)
+            candidates += np.random.normal(0, std, candidates.shape)
         elif self.num_opt_start == 'grid':
             inter_conds = self.create_candidates(N=self.n_candidates)
             if self.num_opt_candidates < self.n_candidates:
@@ -181,11 +182,7 @@ class SurrogateOptimiser(Optimiser):
             self.acqf.conds = X[::self.func.n_obs]
             self.acqf.surr = self.surr
 
-            x0 = None
-            if self.num_opt_start == 'fmin':
-                x0 = X[np.argmin(y)]
-            
-            next_x = self.numerical_search(x0=x0)
+            next_x = self.numerical_search(x0=X[np.argmin(y)])
 
             if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
                 break
