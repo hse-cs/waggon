@@ -7,6 +7,7 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
     def __init__(self, func, surr, acqf, **kwargs):
         super(BarycentreSurrogateOptimiser, self).__init__(func, surr, acqf, **kwargs)
         self.clear_surr = kwargs['clear_surr'] if 'clear_surr' in kwargs else False
+        self.surr.models_dir = f'models_{self.seed}_{"robust" if self.acqf.robust else "optimist"}'
     
     def get_lip(self, X, y):
         idx = np.array(np.meshgrid(np.arange(X.shape[0]), np.arange(X.shape[0]))).T.reshape(-1, 2)
@@ -16,7 +17,7 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
 
     def predict(self, X, y):
 
-        for j in range(self.n_candidates):
+        for j in range(3):
 
             self.surr.fit(X, y)
             self.acqf.L = self.get_lip(X, y)
@@ -29,7 +30,7 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
             if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
                 break
         
-        if j == self.n_candidates - 1:
+        if j == 2:
             next_x += np.random.normal(0, self.eps, 1)
         
         if self.clear_surr:
@@ -37,11 +38,6 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
             gc.collect()
         
         return np.array([next_x])
-        
-        # if next_x in X:
-        #     next_x += np.random.normal(0, self.jitter, 1)
-        
-        # return np.array([next_x])
 
 
 class EnsembleBarycentreSurrogateOptimiser(SurrogateOptimiser):

@@ -14,8 +14,8 @@ from gpytorch.variational import CholeskyVariationalDistribution, VariationalStr
 
 from .base import Surrogate
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-torch.set_default_device(device)
+# device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# torch.set_default_device(device)
 
 class DGP(Surrogate):
     def __init__(self, **kwargs):
@@ -34,6 +34,7 @@ class DGP(Surrogate):
         self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else self.n_epochs + 1
         if self.save_epoch < 1:
             self.save_epoch = int(self.n_epochs * self.save_epoch)
+        self.models_dir   = kwargs['models_dir'] if 'models_dir' in kwargs else 'models'
 
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
@@ -50,12 +51,8 @@ class DGP(Surrogate):
     
     def fit(self, X, y, epoch=None):
         
-        if not epoch:
-            del self.model
-            gc.collect()
-
-            self.input_shape = X.shape[1]
-            self.model = self.make_model()
+        self.input_shape = X.shape[1]
+        self.model = self.make_model()
         
         X = torch.tensor(X).float()
         y = torch.tensor(y).float().squeeze()
@@ -84,12 +81,10 @@ class DGP(Surrogate):
             optimizer.step()
 
             if (epoch >= self.save_epoch):
-                # print(self.save_epoch)
                 self.save_model(epoch=epoch)
             
             if self.verbose > 1:
                 pbar.set_description(f'Epoch {epoch + 1} - Loss: {loss.mean().item():.3f}')
-
     
     def predict(self, X):
 
@@ -105,21 +100,21 @@ class DGP(Surrogate):
         
         return mean.detach().numpy(), std.detach().numpy()
     
-    def save_model(self, epoch=1, dir='models'):
+    def save_model(self, epoch=1):
 
-        if not os.path.isdir(dir):
-            os.mkdir(dir)
+        if not os.path.isdir(self.models_dir):
+            os.mkdir(self.models_dir)
         
-        torch.save(self.model.state_dict(), f'{dir}/dgp_{epoch}.pt')
+        torch.save(self.model.state_dict(), f'{self.models_dir}/dgp_{epoch}.pt')
     
-    def load_model(self, epoch=None, dir='models', return_model=False):
+    def load_model(self, epoch=None, return_model=False):
 
         model = self.make_model()
 
         if epoch is None:
             epoch = self.n_epochs
 
-        model.load_state_dict(torch.load(f'{dir}/dgp_{epoch}.pt', weights_only=True))
+        model.load_state_dict(torch.load(f'{self.models_dir}/dgp_{epoch}.pt', weights_only=True))
         model.eval()
 
         if return_model:

@@ -20,17 +20,22 @@ class GP(Surrogate):
             if self.kernel is None:
                 self.kernel = GPy.kern.Matern32(input_dim=X.shape[-1], lengthscale=1.0)
 
-            self.model = GPy.models.GPRegression(X, y,
+            self.model = GPy.models.GPRegression(X.astype(np.float128), y.astype(np.float128),
                                                  kernel = self.kernel,
                                                  mean_function = self.mean)
+        self.mu, self.std = np.mean(y), np.std(y)
+        y = (y - self.mu) / (self.std + 1e-8)
         
-        self.model.set_XY(X=X, Y=y)
+        self.model.set_XY(X=X.astype(np.float128) , Y=y.astype(np.float128))
         
-        self.model.optimize(messages=True if self.verbose > 1 else False)
+        self.model.optimize(optimizer='lbfgsb')
 
     def predict(self, X):
 
-        f, var = self.model.predict(X)
+        f, var = self.model.predict(X.astype(np.float128))
         std = np.sqrt(var)
 
-        return f, std
+        f += self.mu
+        std *= self.std
+
+        return f.astype(np.float64), std.astype(np.float64)

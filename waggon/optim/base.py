@@ -193,7 +193,7 @@ class Optimiser(object):
         if not os.path.isdir(base_dir):
             os.mkdir(base_dir)
 
-        with open(f'{base_dir}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
+        with open(f'{base_dir}/seed_{self.seed}_{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(res, f)
     
     def plot_iteration_results(self):

@@ -174,7 +174,7 @@ class SurrogateOptimiser(Optimiser):
         next_x : np.array of shape (func.dim, n_pred)
         '''
         
-        for j in range(self.n_candidates):
+        for j in range(3):
 
             self.surr.fit(X, y)
             
@@ -187,7 +187,7 @@ class SurrogateOptimiser(Optimiser):
             if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
                 break
         
-        if j == self.n_candidates - 1:
+        if j == 2:
             next_x += np.random.normal(0, self.eps, 1)
         
         return np.array([next_x])
@@ -200,7 +200,7 @@ class SurrogateOptimiser(Optimiser):
                'y': self.res,
                'err': self.errors}
 
-        with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
+        with open(f'{res_path}/seed_{self.seed}_{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(res, f)
     
 
