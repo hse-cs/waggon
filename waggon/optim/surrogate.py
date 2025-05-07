@@ -77,6 +77,7 @@ class SurrogateOptimiser(Optimiser):
         self.num_opt_disp       = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
         self.num_opt_tol        = kwargs['num_opt_tol'] if 'num_opt_tol' in kwargs else 1e-6
         self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 128
+        self.predict_runs       = kwargs['predict_runs'] if 'predict_runs' in kwargs else 3
 
         self.eq_cons            = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons          = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
@@ -110,8 +111,7 @@ class SurrogateOptimiser(Optimiser):
             candidates = self.create_candidates()
         elif self.num_opt_start == 'random':
             candidates = np.array(self.num_opt_candidates * [x0])
-            std = max(self.jitter, np.abs(self.errors[-1] - self.errors[-2]) if len(self.errors) > 1 else self.jitter)
-            candidates += np.random.normal(0, std, candidates.shape)
+            candidates += np.random.normal(0, self.eps, candidates.shape)
         elif self.num_opt_start == 'grid':
             inter_conds = self.create_candidates(N=self.n_candidates)
             if self.num_opt_candidates < self.n_candidates:
@@ -174,20 +174,20 @@ class SurrogateOptimiser(Optimiser):
         next_x : np.array of shape (func.dim, n_pred)
         '''
         
-        for j in range(3):
+        for j in range(self.predict_runs):
 
             self.surr.fit(X, y)
             
             self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
             self.acqf.conds = X[::self.func.n_obs]
             self.acqf.surr = self.surr
-
+            
             next_x = self.numerical_search(x0=X[np.argmin(y)])
 
             if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
                 break
         
-        if j == 2:
+        if j == self.predict_runs - 1:
             next_x += np.random.normal(0, self.eps, 1)
         
         return np.array([next_x])
@@ -200,7 +200,7 @@ class SurrogateOptimiser(Optimiser):
                'y': self.res,
                'err': self.errors}
 
-        with open(f'{res_path}/seed_{self.seed}_{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
+        with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(res, f)
     
 

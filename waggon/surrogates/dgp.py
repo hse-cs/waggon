@@ -3,6 +3,7 @@ import gc
 import torch
 import gpytorch
 from tqdm import tqdm
+from numpy import arange
 from gpytorch.models.deep_gps import DeepGP, DeepGPLayer
 from gpytorch.models import AbstractVariationalGP
 from gpytorch.means import ConstantMean, LinearMean
@@ -14,8 +15,8 @@ from gpytorch.variational import CholeskyVariationalDistribution, VariationalStr
 
 from .base import Surrogate
 
-# device = 'cuda' if torch.cuda.is_available() else 'cpu'
-# torch.set_default_device(device)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.set_default_device(device)
 
 class DGP(Surrogate):
     def __init__(self, **kwargs):
@@ -31,10 +32,14 @@ class DGP(Surrogate):
         self.actf         = kwargs['actf'] if 'actf' in kwargs else torch.tanh
         self.means        = kwargs['means'] if 'means' in kwargs else ['linear', 'linear']
         self.scale        = kwargs['scale'] if 'scale' in kwargs else True
-        self.save_epoch   = kwargs['save_epoch'] if 'save_epoch' in kwargs else self.n_epochs + 1
-        if self.save_epoch < 1:
-            self.save_epoch = int(self.n_epochs * self.save_epoch)
         self.models_dir   = kwargs['models_dir'] if 'models_dir' in kwargs else 'models'
+
+        self.checkpoints  = kwargs['checkpoints'] if 'checkpoints' in kwargs else (self.n_epochs + 1, 1)
+        if self.checkpoints[0] < 1:
+            self.checkpoints[0] = int(self.n_epochs * self.checkpoints)
+        self.checkpoints   = arange(self.checkpoints[0], self.n_epochs-1, self.checkpoints[1])
+        
+        
 
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
@@ -80,7 +85,7 @@ class DGP(Surrogate):
             loss.mean().backward()
             optimizer.step()
 
-            if (epoch >= self.save_epoch):
+            if epoch in self.checkpoints:
                 self.save_model(epoch=epoch)
             
             if self.verbose > 1:

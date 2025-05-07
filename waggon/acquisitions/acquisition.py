@@ -56,7 +56,7 @@ class EI(Acquisition):
 
 
 class CB(Acquisition):
-    def __init__(self, kappa=2.0, minimise=True):
+    def __init__(self, kappa=1.0, minimise=True):
         '''
         Confidence Bound (CB) type acquisition function.
 
@@ -91,6 +91,9 @@ class CB(Acquisition):
         regret : np.array of shape (n_candidates, 1)
             CB values.
         '''
+        if len(x.shape) == 1:
+            x = x.reshape(1, -1)
+        
         mu, std = self.surr.predict(x, **kwargs)
 
         if self.minimise:
@@ -328,30 +331,23 @@ class OTUCB(Acquisition):
         self.verbose = 1
         self.parallel = parallel
         self.L = 1.0
-    
-    def __single_pred(self, surr):
-        with torch.no_grad(), gpytorch.settings.fast_pred_var():
-            observed_pred = surr.likelihood(surr(self.x))
-        return observed_pred.mean[0, 0, :].detach().numpy()
+        self.y_mu = 0.0
+        self.w = 0.1 * np.ones(10).reshape(-1, 1)
         
     def __call__(self, x):
         
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
+        mu = []
+        x = torch.tensor(x).float()
         
-        if self.parallel:
-            self.x = torch.tensor(x).float()
-            mu = np.array(Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.__single_pred)(surr) for surr in self.surr))
-        else:
-            mu = []
-            for surr in self.surr:
-                with torch.no_grad(), gpytorch.settings.fast_pred_var():
-                    observed_pred = surr.likelihood(surr(torch.tensor(x).float()))
-                    mu.append(observed_pred.mean[0, 0, :].detach().numpy())
-            mu = np.array(mu)
+        for surr in self.surr:
+            with torch.no_grad(), gpytorch.settings.fast_computations():
+                mu.append(surr.likelihood(surr(x)).mean[0, 0, :].detach().numpy())
         
-        w = np.ones(mu.shape[1]) / mu.shape[1]
-        mu, eps = np.sum(w * mu, axis=0), np.std(mu)
+        mu = self.w * (np.array(mu) + self.y_mu)
+        eps = np.std(mu)
+        mu = np.sum(mu, axis=0)
         
         if self.robust:
             return mu + self.L * eps
