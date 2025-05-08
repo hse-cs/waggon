@@ -338,6 +338,7 @@ class OTUCB(Acquisition):
         
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
+        
         mu = []
         x = torch.tensor(x).float()
         
@@ -345,9 +346,9 @@ class OTUCB(Acquisition):
             with torch.no_grad(), gpytorch.settings.fast_computations():
                 mu.append(surr.likelihood(surr(x)).mean[0, 0, :].detach().numpy())
         
-        mu = self.w * (np.array(mu) + self.y_mu)
-        eps = np.std(mu)
-        mu = np.sum(mu, axis=0)
+        mu  = np.array(mu)
+        eps = np.std(mu, axis=0)
+        mu  = np.sum(self.w * (mu + self.y_mu), axis=0)
         
         if self.robust:
             return mu + self.L * eps

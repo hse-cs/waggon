@@ -15,9 +15,6 @@ from gpytorch.variational import CholeskyVariationalDistribution, VariationalStr
 
 from .base import Surrogate
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-torch.set_default_device(device)
-
 class DGP(Surrogate):
     def __init__(self, **kwargs):
         super(DGP, self).__init__()
@@ -39,8 +36,6 @@ class DGP(Surrogate):
             self.checkpoints[0] = int(self.n_epochs * self.checkpoints)
         self.checkpoints   = arange(self.checkpoints[0], self.n_epochs-1, self.checkpoints[1])
         
-        
-
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
     
