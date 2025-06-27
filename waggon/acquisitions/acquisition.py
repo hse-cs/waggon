@@ -94,13 +94,13 @@ class CB(Acquisition):
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
         
-        mu, std = self.surr.predict(x)
+        mu, std = self.surr.predict(x, **kwargs)
 
         if self.minimise:
             regret = mu - self.kappa * std # LCB
         else:
             regret = mu + self.kappa * std # UCB
-
+        
         return regret
 
 

@@ -28,8 +28,8 @@ class BarycentreSurrogateOptimiser(SurrogateOptimiser):
         next_x = self.numerical_search(x0=X[np.argmin(y)])
 
         if np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
-            next_x = np.repeat(next_x.reshape(1, -1), self.n_points, axis=0)
-            next_x += np.random.normal(0, self.jitter, next_x.shape)
+            next_x = np.repeat(next_x.reshape(1, -1), self.num_opt_candidates, axis=0)
+            next_x += np.random.normal(0, self.eps, next_x.shape)
             next_x = next_x[np.argmin(self.acqf(next_x))]
         
         if self.clear_surr:
