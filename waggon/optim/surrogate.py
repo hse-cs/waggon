@@ -1,4 +1,5 @@
 import time
+import torch
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -75,9 +76,8 @@ class SurrogateOptimiser(Optimiser):
         self.n_candidates       = kwargs['n_candidates'] if 'n_candidates' in kwargs else 10201
         self.num_opt_start      = kwargs['num_opt_start'] if 'num_opt_start' in kwargs else 'grid'
         self.num_opt_disp       = kwargs['num_opt_disp'] if 'num_opt_disp' in kwargs else False
-        self.num_opt_tol        = kwargs['num_opt_tol'] if 'num_opt_tol' in kwargs else 1e-6
+        self.num_opt_tol        = kwargs['num_opt_tol'] if 'num_opt_tol' in kwargs else 1e-4
         self.num_opt_candidates = kwargs['num_opt_candidates'] if 'num_opt_candidates' in kwargs else 128
-        self.predict_runs       = kwargs['predict_runs'] if 'predict_runs' in kwargs else 3
 
         self.eq_cons            = kwargs['eq_cons'] if 'eq_cons' in kwargs else None
         self.ineq_cons          = kwargs['ineq_cons'] if 'ineq_cons' in kwargs else None
@@ -128,7 +128,7 @@ class SurrogateOptimiser(Optimiser):
         
         if self.parallel in [0, 1]:
 
-            for i, x0 in enumerate(candidates):
+            for i, x0 in enumerate(torch.from_numpy(candidates)):
                 
                 if (self.eq_cons is None) and (self.ineq_cons is None):
                     opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
@@ -174,21 +174,22 @@ class SurrogateOptimiser(Optimiser):
         next_x : np.array of shape (func.dim, n_pred)
         '''
         
-        for j in range(self.predict_runs):
-
-            self.surr.fit(X, y)
-            
-            self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
-            self.acqf.conds = X[::self.func.n_obs]
-            self.acqf.surr = self.surr
-            
-            next_x = self.numerical_search(x0=X[np.argmin(y)])
-
-            if not np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
-                break
+        self.surr.fit(X, y)
         
-        if j == self.predict_runs - 1:
-            next_x += np.random.normal(0, self.eps, 1)
+        self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
+        self.acqf.conds = X[::self.func.n_obs]
+        self.acqf.surr = self.surr
+            
+        next_x = self.numerical_search(x0=X[np.argmin(y)])
+
+        if np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
+            next_x = np.repeat(next_x.reshape(1, -1), self.num_opt_candidates, axis=0)
+            next_x += np.random.normal(0, self.eps, next_x.shape)
+            next_x = next_x[np.argmin(self.acqf(next_x))]
+        
+        # if self.clear_surr:
+        #     del self.acqf.surr
+        #     gc.collect()
         
         return np.array([next_x])
     
@@ -200,7 +201,7 @@ class SurrogateOptimiser(Optimiser):
                'y': self.res,
                'err': self.errors}
 
-        with open(f'{res_path}/{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
+        with open(f'{res_path}/{self.seed}_{time.strftime("%d_%m_%H_%M_%S")}.pkl', 'wb') as f:
             pickle.dump(res, f)
     
 

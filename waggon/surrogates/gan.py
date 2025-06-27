@@ -124,7 +124,7 @@ class WGAN_GP(GenSurrogate):
             fit_loop = tqdm(fit_loop, unit="epoch", leave=True, position=2)
         
         for e in fit_loop:
-            for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True):
+            for X_batch, y_batch in DataLoader(X_train, batch_size=self.batch_size, shuffle=True, drop_last=True, device=device):
 
                 for _ in range(self.n_disc):
                     noise_batch = Variable(torch.tensor(np.random.normal(0, 1, (self.batch_size, self.latent_dim)), dtype=torch.float32, device=device))

@@ -86,10 +86,10 @@ class DGP(Surrogate):
             if self.verbose > 1:
                 pbar.set_description(f'Epoch {epoch + 1} - Loss: {loss.mean().item():.3f}')
     
-    def predict(self, X):
+    def predict(self, X, return_grad=False):
 
         self.model.eval()
-        with torch.no_grad(), gpytorch.settings.fast_pred_var():
+        with gpytorch.settings.fast_pred_var():
             observed_pred = self.model.likelihood(self.model(torch.tensor(X).float()))
             mean = observed_pred.mean[0, 0, :]
             std = torch.sqrt(observed_pred.variance)[0, 0, :]
@@ -98,7 +98,12 @@ class DGP(Surrogate):
             mean += self.y_mu
             std *= self.y_std
         
-        return mean.detach().numpy(), std.detach().numpy()
+        # print(mean)
+        
+        if return_grad:
+            return mean.detach().numpy(), std.detach().numpy(), mean.grad.detach().numpy(), std.grad.detach().numpy()
+        else:
+            return mean.detach().numpy(), std.detach().numpy()
     
     def save_model(self, epoch=1):
 

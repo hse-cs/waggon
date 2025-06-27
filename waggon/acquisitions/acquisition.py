@@ -94,13 +94,13 @@ class CB(Acquisition):
         if len(x.shape) == 1:
             x = x.reshape(1, -1)
         
-        mu, std = self.surr.predict(x, **kwargs)
+        mu, std = self.surr.predict(x)
 
         if self.minimise:
             regret = mu - self.kappa * std # LCB
         else:
             regret = mu + self.kappa * std # UCB
-        
+
         return regret
 
 
@@ -332,7 +332,7 @@ class OTUCB(Acquisition):
         self.parallel = parallel
         self.L = 1.0
         self.y_mu = 0.0
-        self.w = 0.1 * np.ones(10).reshape(-1, 1)
+        self.w = 0.1 * np.ones(5).reshape(-1, 1)
         
     def __call__(self, x):
         
