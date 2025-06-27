@@ -187,7 +187,7 @@ class SurrogateOptimiser(Optimiser):
             next_x += np.random.normal(0, self.eps, next_x.shape)
             next_x = next_x[np.argmin(self.acqf(next_x))]
         
-        if self.clear_surr:
+        if hasattr(self, "clear_surr") and self.clear_surr:
             del self.acqf.surr
             gc.collect()
         
