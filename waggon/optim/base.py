@@ -77,9 +77,9 @@ class Optimiser(object):
             else:
                 raise ValueError
         elif self.error_type == 'f':
-            if self.func.f_min is not None:
+            if hasattr(self.func, 'f_min') and self.func.f_min is not None:
                 self.error = lambda y: np.min(np.linalg.norm(self.func.f_min - transform(y), ord=2, axis=-1), axis=-1)
-            elif self.func.glob_min is not None:
+            elif hasattr(self.func, 'glob_min') and self.func.glob_min is not None:
                 self.func_f_min = self.func(self.func.glob_min)
                 self.error = lambda y: np.min(np.linalg.norm(transform(self.func_f_min) - transform(y), ord=2, axis=-1), axis=-1)
             else:
@@ -138,10 +138,10 @@ class Optimiser(object):
         if X is None:
             X = self.create_candidates(strength=1 if not self.olhs else 2)
             X, y = self.func.sample(X)
-            self.res = np.array([[np.min(self.func(X))]])
-            self.params = np.array([X[np.argmin(self.func(X)), :]])
+            self.res = np.array([[np.min(y)]])
+            self.params = np.array([X[np.argmin(y), :]])
         else:
-            self.res = np.array([np.min(y)])
+            self.res = np.array([[np.min(y)]])
             self.params = np.array([X[np.argmin(y), :]])
 
         if self.verbose == 0:
