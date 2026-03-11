@@ -1,5 +1,6 @@
 import os
 import time
+import torch
 import pickle
 import numpy as np
 from tqdm import tqdm
@@ -67,23 +68,23 @@ class Optimiser(object):
         self.plot_results   = kwargs['plot_results'] if 'plot_results' in kwargs else False
 
         if self.func.log_transform:
-            transform = lambda x: np.exp(x)
+            transform = lambda x: torch.exp(x)
         else:
             transform = lambda x: x
         
         if self.error_type == 'x':
             if self.func.glob_min is not None:
-                self.error = lambda x: np.min(np.linalg.norm(self.func.glob_min - x, ord=2, axis=-1), axis=-1)
+                self.error = lambda x: torch.Tensor.min(torch.linalg.norm(self.func.glob_min - x, dim=-1), dim=-1)
             else:
                 raise ValueError
         elif self.error_type == 'f':
             if self.func.f_min is not None:
-                self.error = lambda y: np.min(np.linalg.norm(self.func.f_min - transform(y), ord=2, axis=-1), axis=-1)
+                self.error = lambda y: torch.Tensor.min(torch.linalg.norm(self.func.f_min - transform(y), dim=-1), dim=-1)
             elif self.func.glob_min is not None:
                 self.func_f_min = self.func(self.func.glob_min)
-                self.error = lambda y: np.min(np.linalg.norm(transform(self.func_f_min) - transform(y), ord=2, axis=-1), axis=-1)
+                self.error = lambda y: torch.Tensor.min(torch.linalg.norm(transform(self.func_f_min) - transform(y), dim=-1), dim=-1)
             else:
-                self.error = lambda y: np.max(transform(y))
+                self.error = lambda y: torch.Tensor.max(transform(y))
         else:
             raise ValueError
             
@@ -138,11 +139,11 @@ class Optimiser(object):
         if X is None:
             X = self.create_candidates(strength=1 if not self.olhs else 2)
             X, y = self.func.sample(X)
-            self.res = np.array([[np.min(self.func(X))]])
-            self.params = np.array([X[np.argmin(self.func(X)), :]])
+            self.res = torch.Tensor([[torch.min(self.func(X))]])
+            self.params = torch.Tensor([X[torch.argmin(self.func(X)), :]])
         else:
-            self.res = np.array([np.min(y)])
-            self.params = np.array([X[np.argmin(y), :]])
+            self.res = torch.Tensor([torch.min(y)])
+            self.params = torch.Tensor([X[torch.argmin(y), :]])
 
         if self.verbose == 0:
             opt_loop = range(self.max_iter)
@@ -155,18 +156,18 @@ class Optimiser(object):
             next_x = self.predict(X, y)
 
             X_, y_ = self.func.sample(next_x)
-            X = np.concatenate((X, X_))
-            y = np.concatenate((y, y_))
+            X = torch.cat((X, X_))
+            y = torch.cat((y, y_))
 
             if self.plot_results:
-                self.plot_iteration_results(np.unique(X, axis=0), next_x[0])
+                self.plot_iteration_results(torch.Tensor.unique(X, dim=0), next_x[0])
 
             if y_ <= self.res[-1, :]:
-                self.res = np.concatenate((self.res, y_.reshape(1, -1)))
-                self.params = np.concatenate((self.params, next_x.reshape(1, -1)))
+                self.res = torch.cat((self.res, y_.reshape(1, -1)))
+                self.params = torch.cat((self.params, next_x.reshape(1, -1)))
             else:
-                self.res = np.concatenate((self.res, self.res[-1, :].reshape(1, -1)))
-                self.params = np.concatenate((self.params, self.params[-1, :].reshape(1, -1)))
+                self.res = torch.cat((self.res, self.res[-1, :].reshape(1, -1)))
+                self.params = torch.cat((self.params, self.params[-1, :].reshape(1, -1)))
 
             error = self.error(y) if self.error_type == 'f' else self.error(X)
             self.errors.append(error)

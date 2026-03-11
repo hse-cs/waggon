@@ -12,8 +12,10 @@ class GP(Surrogate):
         self.kernel   = kwargs['kernel'] if 'kernel' in kwargs else None
         self.mean     = kwargs['mean'] if 'mean' in kwargs else None
         self.verbose  = kwargs['verbose'] if 'verbose' in kwargs else 1
+        self.num_outputs = 2
     
     def fit(self, X, y):
+        # self.num_outputs = y.shape[-1]
 
         if self.model is None:
             
@@ -32,7 +34,7 @@ class GP(Surrogate):
 
     def predict(self, X):
 
-        f, var = self.model.predict(X.astype(np.float64))
+        f, var = self.model.predict(X)
         std = np.sqrt(var)
 
         f += self.mu

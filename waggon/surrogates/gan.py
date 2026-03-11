@@ -87,6 +87,8 @@ class WGAN_GP(GenSurrogate):
         if device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
+
+        self.num_outputs = 2
     
 
     def gradient_pen(self, cond_data, real_data, gen_data):
@@ -251,7 +253,7 @@ class WGAN_GP(GenSurrogate):
             self.disc_step(x_batch, y_batch)
         self.gen_step(x_batch, y_batch)
 
-    def sample(self, X_cond: np.ndarray):
+    def sample(self, X_cond: np.ndarray, detach=True):
         if self.G is None:
             raise ValueError("Generator is not specified!")
 
@@ -265,7 +267,11 @@ class WGAN_GP(GenSurrogate):
         
         batch_cond = torch.tensor(X_cond, dtype=torch.float32, device=self.device)
         X_gen = self.G(batch_cond, noise)
-        return X_gen.cpu().detach().numpy()
+
+        if detach:
+            return X_gen.cpu().detach().numpy()
+        else:
+            return X_gen.cpu()
 
     @property
     def history(self):

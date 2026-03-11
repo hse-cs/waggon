@@ -1,11 +1,12 @@
 import gc
 import time
+import torch
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm, ticker
-from scipy.optimize import minimize
-from joblib import Parallel, delayed
+from botorch.optim import optimize_acqf
+# from joblib import Parallel, delayed
 
 from .base import Optimiser
 from .utils import create_dir
@@ -90,108 +91,23 @@ class SurrogateOptimiser(Optimiser):
                 s.verbose = self.verbose
         else:
             self.surr.verbose   = self.verbose
-    
-    
-    def run_lbfgsb(self, x0):
-        opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
-        return opt_res.fun, opt_res.x
-    
-
-    def numerical_search(self, x0=None):
-        '''
-        Numerical optimisation of the acquisition function.
-
-        Returns
-        -------
-        best_x : np.array of shape (func.dim,)
-            Predicted optimum of the acquisition function.
-        '''
-        
-        if (x0 is None) and (self.num_opt_start != 'grid'):
-            candidates = self.create_candidates()
-        elif self.num_opt_start == 'random':
-            candidates = np.array(self.num_opt_candidates * [x0])
-            candidates += np.random.normal(0, self.eps, candidates.shape)
-        elif self.num_opt_start == 'grid':
-            inter_conds = self.create_candidates(N=self.n_candidates)
-            if self.num_opt_candidates < self.n_candidates:
-                ei = self.acqf(inter_conds)
-                try:
-                    ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
-                    candidates = np.take_along_axis(inter_conds, ids, axis=0)
-                except ValueError:
-                    ei = ei.squeeze()
-                    ids = np.argsort(ei, axis=0)[:self.num_opt_candidates].reshape(-1, 1)
-                    candidates = np.take_along_axis(inter_conds, ids, axis=0)
-            else:
-                candidates = inter_conds
-        
-        if self.parallel in [0, 1]:
-
-            for i, x0 in enumerate(candidates):
-                
-                if (self.eq_cons is None) and (self.ineq_cons is None):
-                    opt_res = minimize(method='L-BFGS-B', fun=self.acqf, x0=x0, bounds=self.func.domain, tol=self.num_opt_tol, options={'disp': self.num_opt_disp})
-                else:
-                    opt_res = minimize(method='SLSQP', fun=self.acqf, x0=x0, bounds=self.func.domain, constraints=[self.eq_cons, self.ineq_cons])
-                
-                if i == 0:
-                    best_x = opt_res.x
-                    best_acqf = opt_res.fun
-                else:
-                    if opt_res.fun < best_acqf:
-                        best_acqf = opt_res.fun
-                        best_x = opt_res.x
-            
-            return best_x
-        
-        else:
-
-            r = Parallel(n_jobs=self.parallel, prefer="threads")(delayed(self.run_lbfgsb)(x0) for x0 in candidates)
-            f, x = zip(*r)
-            f, x = np.array(f), np.array(x)
-
-            return x[np.argmin(f)]
-    
 
     def predict(self, X, y):
-        '''
-        Predicts the next best set of parameter values by optimising the acquisition function.
-        
-        Parameters
-        ----------
-        X : np.array of shape (n_samples * func.n_obs, func.dim)
-            Training input points.
-
-        y : np.array of shape (n_samples * func.n_obs, func.dim)
-            Target values of the black-box function.
-        
-        n_pred : int, defult = 1
-            Number of predictions to make.
-        
-        Returns
-        -------
-        next_x : np.array of shape (func.dim, n_pred)
-        '''
         
         self.surr.fit(X, y)
         
         self.acqf.y = y.reshape(y.shape[0]//self.func.n_obs, self.func.n_obs)
         self.acqf.conds = X[::self.func.n_obs]
-        self.acqf.surr = self.surr
-            
-        next_x = self.numerical_search(x0=X[np.argmin(y)])
-
-        if np.any(np.linalg.norm(X - next_x, axis=-1) < 1e-6):
-            next_x = np.repeat(next_x.reshape(1, -1), self.num_opt_candidates, axis=0)
-            next_x += np.random.normal(0, self.eps, next_x.shape)
-            next_x = next_x[np.argmin(self.acqf(next_x))]
+        self.acqf.model = self.surr
+        
+        next_x, _ = optimize_acqf(self.acqf, bounds=torch.Tensor(self.func.domain),
+                                          q=1, num_restarts=200, raw_samples=1000)
         
         if hasattr(self, "clear_surr") and self.clear_surr:
             del self.acqf.surr
             gc.collect()
         
-        return np.array([next_x])
+        return torch.Tensor([next_x])
     
     
     def _save(self, base_dir='test_results'):

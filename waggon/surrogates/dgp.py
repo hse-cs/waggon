@@ -35,6 +35,8 @@ class DGP(Surrogate):
         if self.checkpoints[0] < 1:
             self.checkpoints[0] = int(self.n_epochs * self.checkpoints)
         self.checkpoints   = arange(self.checkpoints[0], self.n_epochs-1, self.checkpoints[1])
+
+        self.num_outputs = 2
         
         self.gen = torch.Generator() # for reproducibility
         self.gen.manual_seed(2208060503)
@@ -98,7 +100,7 @@ class DGP(Surrogate):
             mean += self.y_mu
             std *= self.y_std
         
-        return mean.detach().numpy(), std.detach().numpy()
+        return mean.detach(), std.detach()
     
     def save_model(self, epoch=1):
 
